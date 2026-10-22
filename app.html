@@ -1076,7 +1076,7 @@ function openRead(id, hint){
     (hint ? ' <span class="tiny dim">'+hint+'</span>' : ''),
     head +
     '<div class="read'+(zh?' zh':'')+(vz?' verse':'')+(long?' long':'')+'" id="readBody" style="margin-bottom:14px">'+
-      maskHTML(renderMasked(seg, ui.read.mask), ui.read.mask)+'</div>'+
+      maskHTML(renderMasked(seg, ui.read.mask))+'</div>'+
     maskBar(ui.read.mask, 'setMask')+
     '<div class="row" style="gap:8px;margin-top:12px"><button class="btn pri grow" data-act="readSpeak">朗读一遍</button>'+
     '<button class="btn" data-act="readStop">停止</button></div>'+
@@ -1089,7 +1089,7 @@ function applyMask(v){
   const seg = ui.read && findSeg(ui.read.id); if(!seg) return;
   ui.read.mask = v;
   const box = $('#readBody');
-  if(box) box.innerHTML = maskHTML(renderMasked(seg, v), v);
+  if(box) box.innerHTML = maskHTML(renderMasked(seg, v));
   $$('#modalBox .mask-btn').forEach(b=> b.classList.toggle('on', String(b.dataset.v) === String(v)));
 }
 /* ---------- 遮挡背诵 ----------
@@ -1139,8 +1139,10 @@ function maskRun(run, dense){
   return out;
 }
 function renderMasked(seg, level){
-  if(!level) return [{ t: seg.text }];
-  return maskTokens(DISPLAY(seg), level);
+  // 一律先过 DISPLAY：诗要按句断行，不遮字时也一样，否则「原文」档会退回整段横排
+  const shown = DISPLAY(seg);
+  if(!level) return [{ t: shown }];
+  return maskTokens(shown, level);
 }
 const MASK_UI = [[0,'原文'],['few','遮一些'],['many','遮大半'],['all','全遮']];
 function maskBar(level, act){

@@ -105,11 +105,13 @@ html[data-theme="dark"] .tag.due{background:#2a2113}
 /* 阅读 */
 .read{font-size:19px;line-height:2.05;letter-spacing:.03em;white-space:pre-wrap;word-break:break-word}
 .read.zh{font-family:"Songti SC","STSong","SimSun",serif;font-size:21px}
+/* 诗行居中，散文左对齐——诗本来就该居中对齐排 */
+.verse{text-align:center}
 
 /* cloze */
 .cloze{font-size:17px;line-height:2.3;white-space:pre-wrap;word-break:break-word}
 .cloze.zh{font-family:"Songti SC","STSong","SimSun",serif;font-size:19px}
-.gap{display:inline-block;min-width:52px;border:none;border-bottom:1.5px solid var(--accent);background:transparent;outline:none;text-align:center;font:inherit;color:var(--accent-ink);padding:0 2px;margin:0 1px}
+.gap{display:inline-block;min-width:1.5em;height:1.28em;line-height:1.28em;border:none;border-bottom:1.5px solid var(--accent);background:transparent;outline:none;text-align:center;font:inherit;color:var(--accent-ink);padding:0;margin:0;vertical-align:text-bottom}
 .gap.ok{border-bottom-color:var(--ok);color:var(--ok)}
 .gap.no{border-bottom-color:var(--bad);color:var(--bad)}
 .gap:disabled{opacity:1}
@@ -156,7 +158,7 @@ html[data-theme="dark"] .tag.due{background:#2a2113}
 .num small{font-size:13px;font-weight:400;color:var(--ink3);margin-left:3px}
 .hr{height:1px;background:var(--line);margin:16px 0;border:none}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.pv{border:1px dashed var(--line);border-radius:var(--r);padding:9px 11px;font-size:13px;line-height:1.8;background:var(--panel)}
+.pv{border:1px dashed var(--line);border-radius:var(--r);padding:9px 11px;font-size:13px;line-height:1.8;background:var(--panel);white-space:pre-wrap}
 .pv + .pv{margin-top:6px}
 </style>
 </head>
@@ -296,6 +298,38 @@ function detectLang(t){
   return cjk > latin*0.3 ? 'zh' : 'en';
 }
 const GRAN = { zh:{s:15,m:50,l:150}, en:{s:10,m:30,l:80} };
+
+/* ---------- 古诗文排版 ----------
+   诗按句读断行才像诗，散文整段横排才对。先看体裁，再看句子长短：
+   句句都短（古诗五七言、词、小古文）按句读断，出现长句就当散文不拆。 */
+function isVerse(text, lang, genre){
+  const g = String(genre||'');
+  if(/诗|词|曲|赋|文言|古文|经|骈/.test(g)) return true;
+  if(lang === 'en') return /poem|verse|poetry/i.test(g);   // 英文只认体裁，长文别乱拆
+  const t = String(text||'').trim();
+  if(!t) return false;
+  // 按句末标点断句看长短：散文一句三十字上下，古诗一联也就十几个字
+  const sent = t.split(/[。！？；]+/).map(s=>s.trim()).filter(Boolean);
+  if(sent.length < 2) return false;
+  const lens = sent.map(s=> s.replace(/[\s，。；！？、：,.!?;:]/g,'').length);
+  return Math.max.apply(null, lens) <= 20;
+}
+function verseText(text, lang, genre){
+  const t = String(text||'').trim();
+  if(!isVerse(t, lang, genre)) return t;
+  const re = lang==='en' ? /([,.;!?])\s*/g : /([，。；！？])\s*/g;
+  const raw = t.replace(re, '$1\n').split('\n').map(s=>s.trim()).filter(Boolean);
+  // 合并碎行：像「鹅，鹅，鹅」这种一两个字的短句要接回同一行，不然会被拆成三行
+  const out = [];
+  for(const ln of raw){
+    const bare = ln.replace(/[\s，。；！？、：,.!?;:]/g,'').length;
+    if(out.length && bare <= 2){
+      out[out.length-1] += (lang==='en' ? ' ' : '') + ln;
+    } else out.push(ln);
+  }
+  return out.join('\n');
+}
+const DISPLAY = (seg)=> verseText(seg.text, seg.doc.lang, seg.doc.genre);
 function lenOf(s, lang){
   return lang==='en' ? s.trim().split(/\s+/).filter(Boolean).length : s.replace(/\s/g,'').length;
 }
@@ -410,12 +444,19 @@ function todayQueue(){
 }
 
 /* ---------- 挖空 ---------- */
-function makeCloze(text, lang, density){
-  const rate = density==='low' ? 0.2 : density==='high' ? 0.6 : 0.4;
-  return lang==='en' ? clozeEN(text, rate) : clozeZH(text, rate);
+function makeCloze(text, lang, density, verse){
+  let rate = density==='low' ? 0.2 : density==='high' ? 0.6 : 0.4;
+  if(verse) rate = Math.min(rate, 0.35);   // 诗一行就五七个字，挖太多整行会碎掉
+  return lang==='en' ? clozeEN(text, rate) : clozeZH(text, rate, verse ? 3 : 6);
 }
-function clozeZH(text, rate){
-  const PUNCT = '，。！？；：、,.!?;:"“”‘’（）《》…—';
+/* 挖空宽度贴合答案字数：固定宽度在分行排版的诗里会把整行撑散 */
+function gapStyle(tk, zh){
+  const n = Array.from(tk.answer || '').length;
+  const w = zh ? n * 1.02 : n * 0.6;
+  return 'width:' + Math.max(zh ? 1.7 : 2.4, w).toFixed(2) + 'em';
+}
+function clozeZH(text, rate, maxSeg){
+  const PUNCT = '，。！？；：、,.!?;:"“”‘’（）《》…—\n';
   const chars = Array.from(text);
   const runs = [];
   let i = 0;
@@ -431,7 +472,7 @@ function clozeZH(text, rate){
   const picked = [];
   for(const [s,e] of shuffle(runs.slice())){
     if(budget <= 0) break;
-    const maxLen = Math.min(e-s, 6);
+    const maxLen = Math.min(e-s, maxSeg || 6);
     if(maxLen < 2) continue;
     const len = 2 + Math.floor(Math.random()*Math.max(0, maxLen-1));
     const start = s + Math.floor(Math.random()*(e-s-len+1));
@@ -692,12 +733,15 @@ function viewReview(){
     return emptyBox('&#9998;','还没有可练习的内容','先在「今日」学几段，第二天它们会进入复习队列');
   }
   if(!ui.cloze || ui.cloze.seg.id !== seg.id){
-    ui.cloze = { seg:seg, tokens:makeCloze(seg.text, seg.doc.lang, state.settings.density), done:false, result:null };
+    const verse = isVerse(seg.text, seg.doc.lang, seg.doc.genre);
+    ui.cloze = { seg:seg, verse:verse,
+      tokens:makeCloze(DISPLAY(seg), seg.doc.lang, state.settings.density, verse),
+      done:false, result:null };
   }
   const cz = ui.cloze;
   const zh = seg.doc.lang === 'zh';
   const body = cz.tokens.map((tk,i)=> tk.blank
-    ? '<input class="gap'+(cz.done?' '+(tk._ok?'ok':'no'):'')+'" data-i="'+i+'" '+
+    ? '<input class="gap'+(cz.done?' '+(tk._ok?'ok':'no'):'')+'" data-i="'+i+'" style="'+gapStyle(tk, zh)+'" '+
       (cz.done?'disabled value="'+esc(tk._val)+'"':'placeholder="'+esc(tk.hint)+'"')+'>'+
       (cz.done && !tk._ok ? '<span class="ans">'+esc(tk.answer)+'</span>' : '')
     : esc(tk.t)).join('');
@@ -705,7 +749,7 @@ function viewReview(){
   let h = '<div class="sec"><div class="card">'+
     '<div class="row" style="margin-bottom:10px"><span class="tag src">'+esc(seg.doc.title)+'</span>'+
     '<span class="tiny dim grow">'+(q.review.length?q.review.length+' 项待复习':'自由练习')+'</span></div>'+
-    '<div class="cloze'+(zh?' zh':'')+'" id="clozeBox">'+body+'</div>';
+    '<div class="cloze'+(zh?' zh':'')+(cz.verse?' verse':'')+'" id="clozeBox">'+body+'</div>';
 
   if(cz.done){
     const r = cz.result;
@@ -777,10 +821,11 @@ function viewRoam(){
   if(!seg) return emptyBox('&#10227;','还没有学过的内容','先在「今日」朗读几段，之后就能在这里自由重温');
   const c = cardOf(seg.id);
   const zh = seg.doc.lang === 'zh';
+  const vz = isVerse(seg.text, seg.doc.lang, seg.doc.genre);
   return '<div class="sec"><div class="card">'+
     '<div class="row" style="margin-bottom:12px"><span class="tag src">'+esc(seg.doc.title)+'</span>'+
     '<span class="tiny dim grow">上次复习 '+c.lastReview+' · 已复习 '+(c.seen||0)+' 次</span></div>'+
-    '<div class="read'+(zh?' zh':'')+'" id="roamText">'+esc(seg.text)+'</div>'+
+    '<div class="read'+(zh?' zh':'')+(vz?' verse':'')+'" id="roamText">'+esc(DISPLAY(seg))+'</div>'+
     '<div class="hr"></div>'+
     '<div class="row" style="gap:8px"><button class="btn grow" data-act="roamSpeak">朗读</button>'+
     '<button class="btn" data-act="roamNext">换一段</button></div>'+
@@ -847,10 +892,11 @@ function closeModal(){ $('#modal').classList.add('hidden'); }
 function openRead(id, hint){
   const seg = findSeg(id); if(!seg) return;
   const zh = seg.doc.lang === 'zh';
+  const vz = isVerse(seg.text, seg.doc.lang, seg.doc.genre);
   ui.read = { id:id, times:0 };
   showModal('朗读 · '+esc(seg.doc.title)+
     (hint ? ' <span class="tiny dim">'+hint+'</span>' : ''),
-    '<div class="read'+(zh?' zh':'')+'" style="margin-bottom:16px">'+esc(seg.text)+'</div>'+
+    '<div class="read'+(zh?' zh':'')+(vz?' verse':'')+'" style="margin-bottom:16px">'+esc(DISPLAY(seg))+'</div>'+
     '<div class="row" style="gap:8px"><button class="btn pri grow" data-act="readSpeak">朗读一遍</button>'+
     '<button class="btn" data-act="readStop">停止</button></div>'+
     '<div class="tiny dim" style="margin:10px 0 14px">建议出声读两遍，再标记完成。朗读不计分，只建立初次印象。</div>'+
@@ -892,18 +938,99 @@ function findSeg(id){
 function openDoc(id){
   const d = state.docs.find(x=>x.id===id); if(!d) return;
   const zh = d.lang === 'zh';
-  showModal(esc(d.title),
-    '<div class="row" style="margin-bottom:12px"><span class="tag src">'+esc(d.genre)+'</span>'+
-    '<span class="tiny dim">'+d.segments.length+' 个记忆单元</span>'+
-    '<span class="grow"></span><button class="btn sm" data-act="delDoc" data-id="'+d.id+'">删除</button></div>'+
+  showModal('编辑文档',
+    '<div class="grid2"><div><label class="lab">标题</label>'+
+    '<input class="fld" id="docTitle" data-doc="'+d.id+'" value="'+esc(d.title)+'"></div>'+
+    '<div><label class="lab">体裁</label>'+
+    '<input class="fld" id="docGenre" data-doc="'+d.id+'" value="'+esc(d.genre)+'"></div></div>'+
+    '<div class="row" style="margin:12px 0 6px"><span class="tiny dim grow">'+
+    d.segments.length+' 个记忆单元 · 改完自动保存</span>'+
+    '<button class="btn sm" data-act="resegDoc" data-id="'+d.id+'">重新分段</button>'+
+    '<button class="btn sm" data-act="delDoc" data-id="'+d.id+'" style="color:var(--bad)">删除</button></div>'+
     d.segments.map((s,i)=>{
       const c = state.cards[d.id+'::'+i] || newCard();
       const badge = c.status==='mastered' ? '<span class="tag done">已掌握</span>'
         : c.status==='learning' ? '<span class="tag due">学习中</span>' : '<span class="tag">未开始</span>';
       return '<div class="row" style="align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line-soft)">'+
-        '<div class="grow" style="font-size:13px;line-height:1.8'+(zh?';font-family:\'Songti SC\',serif':'')+'">'+esc(s)+'</div>'+
-        '<span style="margin-left:8px">'+badge+'</span></div>';
-    }).join(''));
+        '<div class="grow" style="font-size:13px;line-height:1.8;white-space:pre-wrap'+(zh?';font-family:\'Songti SC\',serif':'')+'">'+
+        esc(verseText(s, d.lang, d.genre))+'</div>'+
+        '<span style="margin-left:8px">'+badge+'</span>'+
+        '<button class="btn sm" data-act="editSeg" data-id="'+d.id+'::'+i+'">改</button>'+
+        '<button class="btn sm" data-act="delSeg" data-id="'+d.id+'::'+i+'" style="color:var(--bad)">删</button></div>';
+    }).join('')+
+    '<button class="btn block" data-act="addSeg" data-id="'+d.id+'" style="margin-top:12px">＋ 补一段</button>');
+}
+
+/* ---------- 文档编辑 ---------- */
+function openEditSeg(id){
+  const seg = findSeg(id); if(!seg) return;
+  showModal('编辑这一段',
+    '<textarea class="fld" id="segText" style="min-height:150px">'+esc(seg.text)+'</textarea>'+
+    '<div class="tiny dim" style="margin:8px 0 12px">改的是这一段的原文，记忆进度（掌握度、下次复习）保持不变。</div>'+
+    '<div class="row" style="gap:8px"><button class="btn grow" data-act="closeModal">取消</button>'+
+    '<button class="btn pri grow" data-act="saveSeg" data-id="'+id+'">保存</button></div>');
+}
+function saveSeg(id){
+  const seg = findSeg(id); if(!seg) return;
+  const t = ($('#segText').value || '').trim();
+  if(!t){ toast('内容不能为空'); return; }
+  seg.doc.segments[seg.idx] = t;
+  save(); closeModal(); render(); openDoc(seg.doc.id);
+  toast('已保存');
+}
+function delSeg(id){
+  const seg = findSeg(id); if(!seg) return;
+  if(!confirm('删除这一段？它的记忆记录也会一起删掉。')) return;
+  const d = seg.doc, n = d.segments.length, i = seg.idx;
+  d.segments.splice(i,1);
+  for(let k=i+1;k<n;k++) state.cards[d.id+'::'+(k-1)] = state.cards[d.id+'::'+k];
+  delete state.cards[d.id+'::'+(n-1)];
+  if(!d.segments.length){            // 最后一段删掉就整篇没了
+    state.docs = state.docs.filter(x=>x.id!==d.id);
+    save(); closeModal(); render(); toast('已删除');
+    return;
+  }
+  save(); render(); openDoc(d.id); toast('已删除这一段');
+}
+function addSeg(id){
+  const d = state.docs.find(x=>x.id===id); if(!d) return;
+  showModal('补一段',
+    '<textarea class="fld" id="segText" style="min-height:150px" placeholder="粘贴或输入内容"></textarea>'+
+    '<div class="row" style="gap:8px;margin-top:12px"><button class="btn grow" data-act="closeModal">取消</button>'+
+    '<button class="btn pri grow" data-act="saveNewSeg" data-id="'+id+'">加入</button></div>');
+}
+function saveNewSeg(id){
+  const d = state.docs.find(x=>x.id===id); if(!d) return;
+  const t = ($('#segText').value || '').trim();
+  if(!t){ toast('内容不能为空'); return; }
+  d.segments.push(t);
+  cardOf(d.id+'::'+(d.segments.length-1));
+  save(); closeModal(); render(); openDoc(d.id);
+  toast('已补上这一段');
+}
+/** 按当前粒度重切整篇：内容没变的段继承原有记忆进度 */
+function resegDoc(id){
+  const d = state.docs.find(x=>x.id===id); if(!d) return;
+  const old = d.segments.slice();
+  // 逐段重切：段边界不动，只在段内按当前粒度调整。
+  // 若整篇一起喂给 segmentDoc，短文本会被诗歌分支打包，手动补的段会被吞回一大段。
+  const segs = [];
+  for(const s of old){
+    const parts = segmentDoc(s, d.lang, state.settings.gran);
+    segs.push(...(parts.length ? parts : [s]));
+  }
+  if(!segs.length){ toast('切不出内容'); return; }
+  const used = {}, next = {};
+  old.forEach((_,i)=> used[i] = false);
+  segs.forEach((t,i)=>{
+    const j = old.findIndex((o,k)=> !used[k] && o === t);
+    if(j >= 0){ used[j] = true; next[d.id+'::'+i] = state.cards[d.id+'::'+j]; }
+  });
+  old.forEach((_,i)=> delete state.cards[d.id+'::'+i]);
+  Object.assign(state.cards, next);
+  d.segments = segs;
+  save(); render(); openDoc(d.id);
+  toast('已重切成 '+segs.length+' 段');
 }
 
 /* ---------- 导入 ---------- */
@@ -1096,7 +1223,7 @@ function renderPreview(){
     '<button data-g="m" class="'+(state.settings.gran==='m'?'on':'')+'">中</button>'+
     '<button data-g="l" class="'+(state.settings.gran==='l'?'on':'')+'">长</button></div>'+
     '<div class="small dim" style="margin:10px 0 6px">切成 '+segs.length+' 个记忆单元</div>'+
-    '<div>'+segs.slice(0,6).map(s=>'<div class="pv">'+esc(s)+'</div>').join('')+
+    '<div>'+segs.slice(0,6).map(s=>'<div class="pv">'+esc(verseText(s, p.lang, p.genre))+'</div>').join('')+
     (segs.length>6 ? '<div class="tiny dim" style="margin-top:6px">… 其余 '+(segs.length-6)+' 段</div>' : '')+'</div>'+
     '<button class="btn pri block" data-act="confirmImport" style="margin-top:14px">导入 '+segs.length+' 个单元</button>';
 }
@@ -1349,6 +1476,12 @@ document.addEventListener('click', e=>{
       break;
     }
     case 'docView': openDoc(id); break;
+    case 'editSeg': openEditSeg(id); break;
+    case 'saveSeg': saveSeg(id); break;
+    case 'delSeg': delSeg(id); break;
+    case 'addSeg': addSeg(id); break;
+    case 'saveNewSeg': saveNewSeg(id); break;
+    case 'resegDoc': resegDoc(id); break;
     case 'delDoc': {
       const d = state.docs.find(x=>x.id===id);
       if(!d) break;
@@ -1410,6 +1543,18 @@ document.addEventListener('click', e=>{
 });
 
 $('#modal').addEventListener('click', e=>{ if(e.target.id === 'modal') closeModal(); });
+
+/* 文档详情里改标题 / 体裁：失焦或回车即存 */
+$('#modal').addEventListener('change', e=>{
+  const t = e.target;
+  if(t.id !== 'docTitle' && t.id !== 'docGenre') return;
+  const d = state.docs.find(x=> x.id === t.dataset.doc);
+  if(!d) return;
+  const v = t.value.trim();
+  if(t.id === 'docTitle') d.title = v || d.title;
+  else d.genre = v || '未分类';
+  save(); render(); toast('已保存');
+});
 
 function fetchWithTimeout(url, ms){
   const ctrl = new AbortController();

@@ -111,6 +111,10 @@ html[data-theme="dark"] .tag.due{background:#2a2113}
 .verse.long{line-height:1.75}
 
 /* 段标题 / 副标题 */
+.mask-bar{display:flex;gap:6px;margin:2px 0 4px}
+.mask-btn{flex:1;padding:7px 0;border:1px solid var(--line);background:var(--panel);border-radius:var(--r);font-size:12px;color:var(--ink2);cursor:pointer;transition:.15s}
+.mask-btn:hover{border-color:var(--accent);color:var(--accent-ink)}
+.mask-btn.on{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-ink);font-weight:600}
 .seg-head{text-align:center;margin-bottom:14px}
 .seg-head-t{font-size:16px;font-weight:600;letter-spacing:.04em;color:var(--ink)}
 .seg-head.zh .seg-head-t{font-family:"Songti SC","STSong","SimSun",serif;font-size:17px}
@@ -1067,16 +1071,86 @@ function openRead(id, hint){
       (seg.label ? '<div class="seg-head-t">'+esc(seg.label)+'</div>' : '')+
       (seg.sub ? '<div class="seg-head-s">'+esc(seg.sub)+'</div>' : '')+'</div>'
     : '';
-  ui.read = { id:id, times:0 };
+  ui.read = { id:id, times:0, mask:(ui.read && ui.read.mask) || 0 };
   showModal('朗读 · '+esc(seg.doc.book || seg.doc.title)+
     (hint ? ' <span class="tiny dim">'+hint+'</span>' : ''),
     head +
-    '<div class="read'+(zh?' zh':'')+(vz?' verse':'')+(long?' long':'')+'" style="margin-bottom:16px">'+esc(shown)+'</div>'+
-    '<div class="row" style="gap:8px"><button class="btn pri grow" data-act="readSpeak">朗读一遍</button>'+
+    '<div class="read'+(zh?' zh':'')+(vz?' verse':'')+(long?' long':'')+'" id="readBody" style="margin-bottom:14px">'+
+      maskHTML(renderMasked(seg, ui.read.mask), ui.read.mask)+'</div>'+
+    maskBar(ui.read.mask, 'setMask')+
+    '<div class="row" style="gap:8px;margin-top:12px"><button class="btn pri grow" data-act="readSpeak">朗读一遍</button>'+
     '<button class="btn" data-act="readStop">停止</button></div>'+
-    '<div class="tiny dim" style="margin:10px 0 14px">建议出声读两遍，再标记完成。朗读不计分，只建立初次印象。</div>'+
+    '<div class="tiny dim" style="margin:10px 0 14px">先看原文读两遍，再逐级遮住背出来。遮字不打断朗读，也不计分。</div>'+
     '<button class="btn block pri" data-act="readDone">读完这段，接着下一段</button>');
   speak(seg.text, seg.doc.lang);
+}
+/** 只重绘朗读区，不重建弹窗——否则朗读会中断、按钮会闪 */
+function applyMask(v){
+  const seg = ui.read && findSeg(ui.read.id); if(!seg) return;
+  ui.read.mask = v;
+  const box = $('#readBody');
+  if(box) box.innerHTML = maskHTML(renderMasked(seg, v), v);
+  $$('#modalBox .mask-btn').forEach(b=> b.classList.toggle('on', String(b.dataset.v) === String(v)));
+}
+/* ---------- 遮挡背诵 ----------
+   朗读阶段逐级加深遮挡，从「看一遍」过渡到「背出来」，不打断朗读。
+   遮的是汉字，标点留着——断句是记忆的骨架，遮了反而更难背。 */
+function maskTokens(text, level){
+  if(!level) return [{ t:text }];
+  const PUNCT = '，。；！？、：,.!?;:"“”‘’（）《》…—\n';
+  const out = [];
+  let buf = '';
+  const chars = Array.from(text);
+  const dense = level === 'all' ? 1 : level === 'many' ? 0.5 : 0.25;
+  for(const ch of chars){
+    if(PUNCT.includes(ch)){
+      if(buf){ out.push(...maskRun(buf, dense)); buf = ''; }
+      out.push({ t:ch });
+    } else buf += ch;
+  }
+  if(buf) out.push(...maskRun(buf, dense));
+  return out;
+}
+function maskRun(run, dense){
+  const ch = Array.from(run);
+  const n = ch.length;
+  if(dense >= 1) return [{ m:true, t:ch.join('') }];
+  if(n <= 1) return [{ t:run }];
+  // 均匀间隔着遮：留下的字散在整句里，比「一段全遮 + 一段全留」更像原文的节奏。
+  // 首字和尾字保留，给两个钩子，五言七言背起来最顺。
+  const keepFirst = n >= 3, keepLast = n >= 4;
+  const hideCount = Math.min(n - (keepFirst?1:0) - (keepLast?1:0), Math.max(1, Math.round(n * dense)));
+  const slot = [], inner = [];
+  for(let i=0;i<n;i++){
+    if((keepFirst && i===0) || (keepLast && i===n-1)) continue;
+    inner.push(i);
+  }
+  const step = inner.length / hideCount;
+  for(let k=0;k<hideCount;k++) slot.push(inner[Math.min(inner.length-1, Math.round((k + 0.5) * step - 0.5))]);
+  const hide = new Set(slot);
+  // 合并相邻同类，减少节点数
+  const out = [];
+  for(let i=0;i<n;i++){
+    const m = hide.has(i);
+    const last = out[out.length-1];
+    if(last && last.m === m && last.t.length) last.t += ch[i];
+    else out.push({ t:ch[i], m });
+  }
+  return out;
+}
+function renderMasked(seg, level){
+  if(!level) return [{ t: seg.text }];
+  return maskTokens(DISPLAY(seg), level);
+}
+const MASK_UI = [[0,'原文'],['few','遮一些'],['many','遮大半'],['all','全遮']];
+function maskBar(level, act){
+  return '<div class="mask-bar">'+ MASK_UI.map(([v,label])=>
+    '<button class="mask-btn'+(level===v?' on':'')+'" data-act="'+(act||'setMask')+'" data-v="'+v+'">'+
+    label+'</button>').join('') + '</div>';
+}
+function maskHTML(tokens){
+  // 用 U+FF0A 全角星号：和汉字等宽，遮字后行宽不打折、星号不散
+  return esc(tokens.map(x=> x.m ? '＊'.repeat(Array.from(x.t).length) : x.t).join(''));
 }
 function finishRead(){
   const id = ui.read && ui.read.id; if(!id) return;
@@ -1692,6 +1766,7 @@ document.addEventListener('click', e=>{
     case 'readSpeak': { const seg = findSeg(ui.read.id); if(seg) speak(seg.text, seg.doc.lang); break; }
     case 'readStop': try{ window.speechSynthesis.cancel(); }catch(err){} break;
     case 'readDone': finishRead(); break;
+    case 'setMask': applyMask(el.dataset.v === '0' ? 0 : el.dataset.v); break;
     case 'cloze': { const sg = findSeg(id); ui.forceSeg = sg; ui.tab='review'; ui.cloze=null; render(); break; }
     case 'checkCloze': doCheckCloze(); break;
     case 'clozeGiveUp': doGiveUp(); break;

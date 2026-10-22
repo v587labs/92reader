@@ -1,0 +1,1480 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-page-node-id="suE73eeCEWWPV7fCoaWk6c">
+<head data-page-node-id="JdLt3rTSxBnrZaktp8rmEu">
+<meta charset="utf-8" data-page-node-id="gO7uoxGcJrrAOU1JjHHVIr">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" data-page-node-id="CYcHvZEWvsMnH2egiRqjsL">
+<title>就爱读 · 92Reader</title>
+<meta name="description" content="粘贴文本自动切成记忆单元，用间隔重复把片段变成长期记忆。92% 即满分，不做断卡清零。" data-page-node-id="b1cFCOiod9reosV0KM1Ma7">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%235e6ad2'/%3E%3Ctext x='16' y='22' font-size='16' font-family='-apple-system,sans-serif' font-weight='600' fill='%23fff' text-anchor='middle'%3E92%3C/text%3E%3C/svg%3E" data-page-node-id="WwYPQTVkCH6zu6vMZb0cx8">
+<style>
+:root{
+  --bg:#fbfbfc; --panel:#ffffff; --line:#e7e7ec; --line-soft:#f1f1f5;
+  --ink:#16161d; --ink2:#5c5c68; --ink3:#92929c;
+  --accent:#5e6ad2; --accent-soft:#eef0fd; --accent-ink:#3f47a8;
+  --ok:#17915a; --ok-soft:#e8f6ee; --warn:#b8791a; --bad:#cc4238; --bad-soft:#fdeceb;
+  --r:8px; --r-lg:12px;
+  --shadow:0 1px 2px rgba(20,20,40,.05);
+}
+html[data-theme="dark"]{
+  --bg:#0d0d11; --panel:#15151c; --line:#26262f; --line-soft:#1d1d25;
+  --ink:#e9e9ef; --ink2:#a0a0ad; --ink3:#6f6f80;
+  --accent:#8b93f8; --accent-soft:#1e2138; --accent-ink:#b3b9ff;
+  --ok:#4fc48a; --ok-soft:#152a20; --warn:#e0a94a; --bad:#f0705f; --bad-soft:#2b1716;
+  --shadow:0 1px 2px rgba(0,0,0,.4);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--ink);
+  font:15px/1.6 -apple-system,BlinkMacSystemFont,"SF Pro SC","PingFang SC","Hiragino Sans GB","Microsoft YaHei",system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  padding-bottom:calc(64px + env(safe-area-inset-bottom));
+}
+button{font:inherit;color:inherit;cursor:pointer}
+input,textarea,select{font:inherit;color:inherit}
+
+/* header */
+.hdr{position:sticky;top:0;z-index:30;background:var(--bg);border-bottom:1px solid var(--line)}
+.hdr-in{max-width:720px;margin:0 auto;padding:10px 16px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand{display:flex;align-items:baseline;gap:8px}
+.brand-cn{font-size:17px;font-weight:650;letter-spacing:.02em}
+.brand-en{font-size:11px;color:var(--ink3);letter-spacing:.08em;text-transform:uppercase}
+.hdr-meta{display:flex;align-items:center;gap:10px}
+.hdr-stat{font-size:12px;color:var(--ink2)}
+.icon-btn{background:none;border:1px solid var(--line);border-radius:var(--r);width:32px;height:32px;display:grid;place-items:center;font-size:15px;color:var(--ink2)}
+.icon-btn:hover{border-color:var(--ink3)}
+.ybar{height:3px;background:var(--line-soft);position:relative}
+.ybar-fill{height:100%;background:var(--accent);width:0;transition:width .4s ease}
+.ybar-mark{position:absolute;top:-2px;bottom:-2px;left:92%;width:2px;background:var(--warn);opacity:.75}
+
+/* layout */
+main{max-width:720px;margin:0 auto;padding:16px 16px 40px}
+.sec{margin-bottom:22px}
+.sec-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+.sec-t{font-size:13px;font-weight:600;color:var(--ink2);letter-spacing:.02em}
+.sec-x{font-size:12px;color:var(--ink3)}
+
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r-lg);padding:14px;box-shadow:var(--shadow)}
+.card + .card{margin-top:10px}
+.row{display:flex;align-items:center;gap:10px}
+.between{justify-content:space-between}
+.grow{flex:1;min-width:0}
+.stack{display:flex;flex-direction:column;gap:10px}
+.muted{color:var(--ink2)}
+.dim{color:var(--ink3)}
+.small{font-size:12px}
+.tiny{font-size:11px}
+
+.btn{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:7px 12px;font-size:13px;color:var(--ink);transition:.15s}
+.btn:hover{border-color:var(--ink3)}
+.btn.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.pri:hover{background:var(--accent-ink)}
+.btn.ghost{background:none;border-color:transparent;color:var(--ink2)}
+.btn.ghost:hover{background:var(--line-soft)}
+.btn.sm{padding:4px 9px;font-size:12px}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+.btn.block{display:block;width:100%;text-align:center;padding:10px}
+
+.fld{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:9px 11px;font-size:14px;outline:none}
+.fld:focus{border-color:var(--accent)}
+textarea.fld{resize:vertical;min-height:96px;line-height:1.7}
+label.lab{display:block;font-size:12px;color:var(--ink2);margin:0 0 5px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.seg button{background:none;border:none;padding:6px 12px;font-size:13px;color:var(--ink2)}
+.seg button.on{background:var(--accent-soft);color:var(--accent-ink);font-weight:600}
+
+/* 进度 */
+.bar{height:8px;background:var(--line-soft);border-radius:99px;overflow:hidden;position:relative}
+.bar > i{display:block;height:100%;background:var(--accent);border-radius:99px;transition:width .4s}
+.meter{position:relative;padding-bottom:14px}
+.meter .tick{position:absolute;top:-3px;width:2px;height:14px;background:var(--warn);opacity:.8}
+.meter .tick::after{content:attr(data-l);position:absolute;top:15px;left:50%;transform:translateX(-50%);font-size:10px;color:var(--warn);white-space:nowrap}
+
+/* 任务项 */
+.task{display:flex;gap:12px;align-items:flex-start}
+.task-txt{flex:1;min-width:0;font-size:14px;line-height:1.75;white-space:pre-wrap;word-break:break-word}
+.task-txt.zh{font-family:"Songti SC","STSong",serif;font-size:16px}
+.tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:99px;background:var(--line-soft);color:var(--ink2);white-space:nowrap}
+.tag.new{background:var(--accent-soft);color:var(--accent-ink)}
+.tag.due{background:#fdf3e3;color:var(--warn)}
+html[data-theme="dark"] .tag.due{background:#2a2113}
+.tag.done{background:var(--ok-soft);color:var(--ok)}
+.tag.src{background:none;border:1px solid var(--line);color:var(--ink3)}
+
+/* 阅读 */
+.read{font-size:19px;line-height:2.05;letter-spacing:.03em;white-space:pre-wrap;word-break:break-word}
+.read.zh{font-family:"Songti SC","STSong","SimSun",serif;font-size:21px}
+
+/* cloze */
+.cloze{font-size:17px;line-height:2.3;white-space:pre-wrap;word-break:break-word}
+.cloze.zh{font-family:"Songti SC","STSong","SimSun",serif;font-size:19px}
+.gap{display:inline-block;min-width:52px;border:none;border-bottom:1.5px solid var(--accent);background:transparent;outline:none;text-align:center;font:inherit;color:var(--accent-ink);padding:0 2px;margin:0 1px}
+.gap.ok{border-bottom-color:var(--ok);color:var(--ok)}
+.gap.no{border-bottom-color:var(--bad);color:var(--bad)}
+.gap:disabled{opacity:1}
+.ans{color:var(--bad);text-decoration:line-through;margin-left:2px}
+
+/* 热力图 */
+.heat{display:grid;grid-auto-flow:column;grid-template-rows:repeat(7,1fr);gap:3px}
+.heat i{width:11px;height:11px;border-radius:2px;background:var(--line-soft);display:block}
+.heat i.l1{background:#cdd3f7}.heat i.l2{background:#9aa5ee}.heat i.l3{background:var(--accent)}
+
+/* 文档列表 */
+.doc{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--panel)}
+.doc + .doc{margin-top:8px}
+.doc-b{flex:1;min-width:0}
+.doc-t{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.doc-m{font-size:11px;color:var(--ink3);margin-top:3px}
+
+/* tabbar */
+.tabbar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:var(--bg);border-top:1px solid var(--line);
+  display:flex;padding-bottom:env(safe-area-inset-bottom)}
+.tabbar button{flex:1;background:none;border:none;padding:9px 0 7px;font-size:11px;color:var(--ink3);display:flex;flex-direction:column;align-items:center;gap:3px}
+.tabbar button .ic{font-size:17px;line-height:1}
+.tabbar button.on{color:var(--accent)}
+
+/* modal */
+.modal{position:fixed;inset:0;z-index:60;background:rgba(15,15,25,.42);display:flex;align-items:flex-end;justify-content:center}
+.modal.hidden{display:none}
+.modal-box{background:var(--bg);width:100%;max-width:720px;max-height:88vh;overflow:auto;border-radius:14px 14px 0 0;padding:18px 16px calc(20px + env(safe-area-inset-bottom))}
+@media(min-width:720px){.modal{align-items:center}.modal-box{border-radius:14px;max-height:84vh}}
+.modal-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.modal-t{font-size:15px;font-weight:600}
+
+/* toast */
+.toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%);z-index:90;background:var(--ink);color:var(--bg);
+  padding:9px 16px;border-radius:99px;font-size:13px;box-shadow:0 4px 18px rgba(0,0,0,.2);max-width:80%;text-align:center}
+.toast.hidden{display:none}
+
+.empty{text-align:center;padding:44px 20px;color:var(--ink3)}
+.empty .big{font-size:34px;margin-bottom:10px}
+.kv{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line-soft);font-size:13px}
+.kv:last-child{border-bottom:none}
+.kv b{font-weight:600}
+.num{font-size:29px;font-weight:650;letter-spacing:-.01em;line-height:1.1}
+.num small{font-size:13px;font-weight:400;color:var(--ink3);margin-left:3px}
+.hr{height:1px;background:var(--line);margin:16px 0;border:none}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.pv{border:1px dashed var(--line);border-radius:var(--r);padding:9px 11px;font-size:13px;line-height:1.8;background:var(--panel)}
+.pv + .pv{margin-top:6px}
+</style>
+</head>
+<body data-page-node-id="D3Fyky0l7CM8oXVqXqKLHx">
+
+<header class="hdr" data-page-node-id="qrGWIgKwxwA4uwOkaUYxCx">
+  <div class="hdr-in" data-page-node-id="oAYFDCPUSnioCG0aJiVRaB">
+    <div class="brand" data-page-node-id="mCkxhbhOtRYd3V3jheLrB6"><span class="brand-cn" data-page-node-id="NUbOTytmuwrFFHIztbE7A9">就爱读</span><span class="brand-en" data-page-node-id="JSUQS4R4WMASTr2SJc0CEo">92Reader</span></div>
+    <div class="hdr-meta" data-page-node-id="MVMMJ0nN0z7LoWumjAjPBW">
+      <span class="hdr-stat" id="hdrStat" data-page-node-id="srFbMQE7T7KhEVE1M7KfCP"></span>
+      <button class="icon-btn" data-act="settings" title="设置" data-page-node-id="XctSAzS7D9EwSs0PdffuZv">&#9881;</button>
+    </div>
+  </div>
+  <div class="ybar" data-page-node-id="o9xeoUEZMSGWCmHxYJFOMI"><i class="ybar-fill" id="ybarFill" data-page-node-id="npV5U1BH3PVsyxLHGIqrif"></i><span class="ybar-mark" data-page-node-id="gt78im3QozzWS8F2ip7g2N"></span></div>
+</header>
+
+<main id="main" data-page-node-id="NE9IIv3HJxiMzSFwDe6kFl"></main>
+
+<nav class="tabbar" data-page-node-id="yyhTFb7U5GIi00HkMKltm6">
+  <button data-tab="today" class="on" data-page-node-id="0qXJ3PucJQR2U0frzoeJ1f"><span class="ic" data-page-node-id="pX91IjWDNjZnwIobGpR2F2">&#9679;</span>今日</button>
+  <button data-tab="library" data-page-node-id="hxLO9eN939snJltEEWIsR9"><span class="ic" data-page-node-id="n5G4sxqBKgNL7IC6uAYQcH">&#9776;</span>文库</button>
+  <button data-tab="review" data-page-node-id="YlyBMFVo5pAldD9rAQdcij"><span class="ic" data-page-node-id="ZUxLgDTq2o7zj70JWPXPxw">&#9998;</span>补全</button>
+  <button data-tab="roam" data-page-node-id="GZj3xjg5E1FQqTXwvhuCCe"><span class="ic" data-page-node-id="vypctvkZNoVis6A33ibtK0">&#10227;</span>漫游</button>
+  <button data-tab="stats" data-page-node-id="HHhNqJ37JQ4c0D63SKKi9A"><span class="ic" data-page-node-id="2HWtidgzyBFA7cwKv8vSGN">&#9636;</span>统计</button>
+</nav>
+
+<div class="modal hidden" id="modal" data-page-node-id="mjL254vGFhuB8hF5dTAvWO"><div class="modal-box" id="modalBox" data-page-node-id="tMdH1EhyBqBePsO0lsXfnI"></div></div>
+<div class="toast hidden" id="toast" data-page-node-id="AsQWy6wPGTEBCGPuCH61eN"></div>
+
+<script>
+/* =========================================================
+   就爱读 · 92Reader
+   数据全部存在浏览器 localStorage，无后端数据库
+   ========================================================= */
+
+const KEY = 'reader92.v1.state';
+const LEGACY_KEYS = ['jad92.v1', 'readzy.v1'];
+const DAY = 86400000;
+const TARGET_DAYS = 337;      // 337/365 ≈ 92%
+const ALLOWANCE   = 28;       // 每年休读额度
+
+/* ---------- 状态 ---------- */
+const DEFAULT_SETTINGS = {
+  gran:'m', newPerDay:3, reviewCap:20, density:'m',
+  rate:0.9, voice:true, theme:'light',
+  proxy:'https://r.jina.ai/'
+};
+
+let state = load();
+let ui = { tab:'today', roam:null, preview:null };
+
+/* localStorage 按「源」隔离：换端口、换域名、换 file:// 路径都等于换一个空仓库。
+   storeOK 记录当前环境能不能真正落盘，落不了时界面上要说清楚，不能假装存上了。 */
+let storeOK = true, saveWarned = false;
+function probeStore(){
+  try{
+    const k = KEY + '.probe';
+    localStorage.setItem(k, '1'); localStorage.removeItem(k);
+    return true;
+  }catch(e){ return false; }
+}
+function load(){
+  let raw = null;
+  try{
+    raw = localStorage.getItem(KEY);
+    if(!raw){                       // 旧键迁移：早期用过 jad92.v1 / readzy.v1
+      for(const k of LEGACY_KEYS){
+        const old = localStorage.getItem(k);
+        if(old){ raw = old; try{ localStorage.setItem(KEY, old); localStorage.removeItem(k); }catch(e){} break; }
+      }
+    }
+  }catch(e){ return blank(); }
+  if(!raw) return blank();
+  try{
+    const s = JSON.parse(raw);
+    return {
+      docs: s.docs || [],
+      cards: s.cards || {},
+      checkins: s.checkins || {},
+      settings: Object.assign({}, DEFAULT_SETTINGS, s.settings || {})
+    };
+  }catch(e){ return blank(); }
+}
+function blank(){ return { docs:[], cards:{}, checkins:{}, settings:Object.assign({},DEFAULT_SETTINGS) }; }
+function save(){
+  try{
+    localStorage.setItem(KEY, JSON.stringify(state));
+    storeOK = true;
+  }catch(e){
+    storeOK = false;
+    if(!saveWarned){
+      saveWarned = true;
+      toast('当前环境无法保存数据，建议「设置 → 导出数据」备份');
+    }
+  }
+}
+
+/* 首次打开自动补样例：文库为空且从没填过，就灌 45 篇公有领域内容，
+   避免任何一次「换了地址就看见空页面」。用户主动清空后不再自动灌。 */
+function autoSeed(){
+  if(state.docs.length || state.settings.seeded) return 0;
+  let n = 0;
+  for(const s of SAMPLES){
+    if(state.docs.some(d=>d.title === s.t)) continue;
+    addDoc({ title:s.t, author:s.a, genre:s.g, lang:s.l, text:s.c, source:'公有领域 · 内置样例' });
+    n++;
+  }
+  state.settings.seeded = true;
+  save();
+  return n;
+}
+
+/* ---------- 工具 ---------- */
+const $  = (s,r)=> (r||document).querySelector(s);
+const $$ = (s,r)=> Array.from((r||document).querySelectorAll(s));
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const today = ()=> fmt(new Date());
+function fmt(d){
+  const p = n => String(n).padStart(2,'0');
+  return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate());
+}
+/* 只取日期部分：外部导入的数据可能带完整 ISO 时间戳，直接拼 'T00:00:00' 会得到 Invalid Date */
+function dayNum(s){ return Math.floor(new Date(String(s).slice(0,10)+'T00:00:00').getTime()/DAY); }
+function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+function uid(p){ return (p||'id')+'_'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+
+let toastTimer=null;
+function toast(msg){
+  const el = $('#toast'); el.textContent = msg; el.classList.remove('hidden');
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>el.classList.add('hidden'), 2400);
+}
+
+/* ---------- 语言与长度 ---------- */
+function detectLang(t){
+  const cjk = (t.match(/[\u4e00-\u9fff\u3400-\u4dbf]/g)||[]).length;
+  const latin = (t.match(/[A-Za-z]/g)||[]).length;
+  return cjk > latin*0.3 ? 'zh' : 'en';
+}
+const GRAN = { zh:{s:15,m:50,l:150}, en:{s:10,m:30,l:80} };
+function lenOf(s, lang){
+  return lang==='en' ? s.trim().split(/\s+/).filter(Boolean).length : s.replace(/\s/g,'').length;
+}
+
+/* ---------- 分段：把任意文本切成记忆单元 ---------- */
+function splitSentences(s, lang){
+  if(lang==='en'){
+    return s.split(/(?<=[.!?;])\s+/).map(x=>x.trim()).filter(Boolean);
+  }
+  const out=[]; let buf='';
+  for(const ch of s){
+    buf += ch;
+    if('。！？；…'.includes(ch)){ out.push(buf.trim()); buf=''; }
+  }
+  if(buf.trim()) out.push(buf.trim());
+  return out.filter(Boolean);
+}
+function pack(items, target, lang){
+  const out=[]; let cur='';
+  for(const it of items){
+    const t = it.trim(); if(!t) continue;
+    if(!cur){ cur=t; continue; }
+    if(lenOf(cur,lang)+lenOf(t,lang) <= target*1.35){
+      cur += (lang==='en' ? ' ' : '') + t;
+    } else { out.push(cur); cur=t; }
+  }
+  if(cur) out.push(cur);
+  return out;
+}
+function segmentDoc(text, lang, gran){
+  const target = (GRAN[lang]||GRAN.zh)[gran||'m'];
+  const raw = String(text||'').replace(/\r/g,'').trim();
+  if(!raw) return [];
+  const lines = raw.split('\n').map(x=>x.trim()).filter(Boolean);
+  const avg = lines.reduce((a,b)=>a+b.length,0)/Math.max(1,lines.length);
+  const verseLimit = lang==='en' ? 65 : 25;
+  if(lines.length >= 2 && avg < verseLimit){
+    return pack(lines.map(l=>l.replace(/\s+$/,'')), target, lang);
+  }
+  const blocks = raw.split(/\n\s*\n+/).map(x=>x.replace(/\n+/g,'').trim()).filter(Boolean);
+  let items = [];
+  if(blocks.length > 1){
+    for(const b of blocks){
+      if(lenOf(b,lang) > target*1.6) items.push(...splitSentences(b,lang));
+      else items.push(b);
+    }
+  } else {
+    items = splitSentences(raw, lang);
+  }
+  return pack(items, target, lang);
+}
+
+/* ---------- SM-2 间隔重复 ---------- */
+function newCard(){
+  return { ease:2.5, interval:1, reps:0, lastReview:null, status:'new', seen:0 };
+}
+function applyReview(card, q){
+  if(q < 3){
+    card.reps = 0; card.interval = 1;
+  } else {
+    if(card.reps === 0) card.interval = 1;
+    else if(card.reps === 1) card.interval = 6;
+    else card.interval = Math.round(card.interval * card.ease);
+    card.reps++;
+    card.ease = Math.max(1.3, card.ease + (0.1 - (5-q)*(0.08 + (5-q)*0.02)));
+  }
+  card.lastReview = today();
+  card.status = (card.reps>=3 && card.interval>=21) ? 'mastered' : (card.reps>0 ? 'learning' : 'new');
+  card.seen = (card.seen||0) + 1;
+  return card;
+}
+function rateToQ(r){
+  if(r >= 0.9) return 5;
+  if(r >= 0.7) return 4;
+  if(r >= 0.4) return 3;
+  return 2;
+}
+
+/* ---------- 卡片索引 ---------- */
+function allSegments(){
+  const out = [];
+  for(const d of state.docs){
+    d.segments.forEach((text, i)=>{
+      const id = d.id + '::' + i;
+      out.push({ id, text, doc:d, idx:i });
+    });
+  }
+  return out;
+}
+function cardOf(id){
+  if(!state.cards[id]) state.cards[id] = newCard();
+  return state.cards[id];
+}
+function todayQueue(){
+  const segs = allSegments();
+  const t = dayNum(today());
+  const due = [], fresh = [];
+  for(const s of segs){
+    const c = cardOf(s.id);
+    if(!c.lastReview){ fresh.push({ s, c }); continue; }
+    const elapsed = t - dayNum(c.lastReview);
+    if(elapsed >= c.interval){ due.push({ s, c, overdue: elapsed - c.interval }); }
+  }
+  due.sort((a,b)=> b.overdue - a.overdue);
+  const cap = state.settings.reviewCap || 20;
+  return {
+    review: due.slice(0, cap),
+    reviewTotal: due.length,
+    fresh: fresh.slice(0, state.settings.newPerDay || 3),
+    freshTotal: fresh.length
+  };
+}
+
+/* ---------- 挖空 ---------- */
+function makeCloze(text, lang, density){
+  const rate = density==='low' ? 0.2 : density==='high' ? 0.6 : 0.4;
+  return lang==='en' ? clozeEN(text, rate) : clozeZH(text, rate);
+}
+function clozeZH(text, rate){
+  const PUNCT = '，。！？；：、,.!?;:"“”‘’（）《》…—';
+  const chars = Array.from(text);
+  const runs = [];
+  let i = 0;
+  while(i < chars.length){
+    if(!PUNCT.includes(chars[i])){
+      let j = i;
+      while(j < chars.length && !PUNCT.includes(chars[j])) j++;
+      if(j - i >= 2) runs.push([i,j]);
+      i = j;
+    } else i++;
+  }
+  let budget = Math.floor(runs.reduce((a,[s,e])=>a+(e-s),0) * rate);
+  const picked = [];
+  for(const [s,e] of shuffle(runs.slice())){
+    if(budget <= 0) break;
+    const maxLen = Math.min(e-s, 6);
+    if(maxLen < 2) continue;
+    const len = 2 + Math.floor(Math.random()*Math.max(0, maxLen-1));
+    const start = s + Math.floor(Math.random()*(e-s-len+1));
+    if(picked.some(([ps,pe]) => !(pe <= start || ps >= start+len))) continue;
+    picked.push([start, start+len]);
+    budget -= len;
+  }
+  if(!picked.length) return [{ t:text }];
+  picked.sort((a,b)=>a[0]-b[0]);
+  const out = []; let pos = 0;
+  for(const [s,e] of picked){
+    if(pos < s) out.push({ t:text.slice(pos,s) });
+    out.push({ blank:true, answer:text.slice(s,e), hint:Array.from(text.slice(s,s+1))[0] });
+    pos = e;
+  }
+  if(pos < text.length) out.push({ t:text.slice(pos) });
+  return out;
+}
+function clozeEN(text, rate){
+  const parts = text.split(/(\s+)/);
+  const cand = [];
+  parts.forEach((w,i)=>{ if(/^[A-Za-z]/.test(w) && w.replace(/[^A-Za-z]/g,'').length > 2) cand.push(i); });
+  const n = Math.max(1, Math.round(cand.length * rate));
+  const set = new Set(shuffle(cand.slice()).slice(0,n));
+  return parts.map((w,i)=> set.has(i)
+    ? { blank:true, answer:w, hint:w[0] }
+    : { t:w });
+}
+
+/* ---------- 漫游：遗忘曲线加权随机 ---------- */
+function pickRoam(){
+  const pool = allSegments().filter(s=> cardOf(s.id).lastReview);
+  if(!pool.length) return null;
+  const now = dayNum(today());
+  const scored = pool.map(s=>{
+    const c = cardOf(s.id);
+    const days = Math.max(0, now - dayNum(c.lastReview));
+    const urg = days / Math.max(1, c.interval);
+    return { s, w: urg + (2.5 - c.ease)*0.5 + Math.random()*0.45 };
+  });
+  scored.sort((a,b)=>b.w - a.w);
+  const top = scored.slice(0, Math.min(5, scored.length));
+  return top[Math.floor(Math.random()*top.length)].s;
+}
+
+/* ---------- 统计 ---------- */
+function stats(){
+  const year = new Date().getFullYear();
+  const prefix = year + '-';
+  const done = Object.keys(state.checkins).filter(d=>d.startsWith(prefix)).length;
+  const start = new Date(year,0,1).getTime();
+  const elapsed = Math.floor((Date.now() - start)/DAY) + 1;
+  const missed = Math.max(0, elapsed - done);
+  const left = Math.max(0, ALLOWANCE - missed);
+  const segs = allSegments();
+  const cards = segs.map(s=>cardOf(s.id));
+  return {
+    year, done, elapsed, missed, left,
+    rate: done/365,
+    targetRate: TARGET_DAYS/365,
+    total: segs.length,
+    mastered: cards.filter(c=>c.status==='mastered').length,
+    learning: cards.filter(c=>c.status==='learning').length,
+    untouched: cards.filter(c=>c.status==='new').length,
+    docs: state.docs.length
+  };
+}
+function markCheckin(){
+  const t = today();
+  const rec = state.checkins[t] || { n:0 };
+  rec.n++;
+  state.checkins[t] = rec;
+  save();
+}
+
+/* ---------- 语音 ---------- */
+function speak(text, lang){
+  if(!state.settings.voice || !('speechSynthesis' in window)) return;
+  try{
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = lang==='en' ? 'en-US' : 'zh-CN';
+    u.rate = state.settings.rate || 0.9;
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(u);
+  }catch(e){}
+}
+
+/* ---------- 样例库：全部为公有领域作品 ---------- */
+const SAMPLES = [
+  {t:"静夜思",a:"李白",g:"古诗词",l:"zh",c:"床前明月光，疑是地上霜。举头望明月，低头思故乡。"},
+  {t:"春晓",a:"孟浩然",g:"古诗词",l:"zh",c:"春眠不觉晓，处处闻啼鸟。夜来风雨声，花落知多少。"},
+  {t:"咏鹅",a:"骆宾王",g:"古诗词",l:"zh",c:"鹅，鹅，鹅，曲项向天歌。白毛浮绿水，红掌拨清波。"},
+  {t:"悯农",a:"李绅",g:"古诗词",l:"zh",c:"锄禾日当午，汗滴禾下土。谁知盘中餐，粒粒皆辛苦。"},
+  {t:"登鹳雀楼",a:"王之涣",g:"古诗词",l:"zh",c:"白日依山尽，黄河入海流。欲穷千里目，更上一层楼。"},
+  {t:"江雪",a:"柳宗元",g:"古诗词",l:"zh",c:"千山鸟飞绝，万径人踪灭。孤舟蓑笠翁，独钓寒江雪。"},
+  {t:"早发白帝城",a:"李白",g:"古诗词",l:"zh",c:"朝辞白帝彩云间，千里江陵一日还。两岸猿声啼不住，轻舟已过万重山。"},
+  {t:"望庐山瀑布",a:"李白",g:"古诗词",l:"zh",c:"日照香炉生紫烟，遥看瀑布挂前川。飞流直下三千尺，疑是银河落九天。"},
+  {t:"赠汪伦",a:"李白",g:"古诗词",l:"zh",c:"李白乘舟将欲行，忽闻岸上踏歌声。桃花潭水深千尺，不及汪伦送我情。"},
+  {t:"独坐敬亭山",a:"李白",g:"古诗词",l:"zh",c:"众鸟高飞尽，孤云独去闲。相看两不厌，只有敬亭山。"},
+  {t:"绝句",a:"杜甫",g:"古诗词",l:"zh",c:"两个黄鹂鸣翠柳，一行白鹭上青天。窗含西岭千秋雪，门泊东吴万里船。"},
+  {t:"春夜喜雨",a:"杜甫",g:"古诗词",l:"zh",c:"好雨知时节，当春乃发生。随风潜入夜，润物细无声。野径云俱黑，江船火独明。晓看红湿处，花重锦官城。"},
+  {t:"江南逢李龟年",a:"杜甫",g:"古诗词",l:"zh",c:"岐王宅里寻常见，崔九堂前几度闻。正是江南好风景，落花时节又逢君。"},
+  {t:"游子吟",a:"孟郊",g:"古诗词",l:"zh",c:"慈母手中线，游子身上衣。临行密密缝，意恐迟迟归。谁言寸草心，报得三春晖。"},
+  {t:"赋得古原草送别",a:"白居易",g:"古诗词",l:"zh",c:"离离原上草，一岁一枯荣。野火烧不尽，春风吹又生。远芳侵古道，晴翠接荒城。又送王孙去，萋萋满别情。"},
+  {t:"池上",a:"白居易",g:"古诗词",l:"zh",c:"小娃撑小艇，偷采白莲回。不解藏踪迹，浮萍一道开。"},
+  {t:"小池",a:"杨万里",g:"古诗词",l:"zh",c:"泉眼无声惜细流，树阴照水爱晴柔。小荷才露尖尖角，早有蜻蜓立上头。"},
+  {t:"晓出净慈寺送林子方",a:"杨万里",g:"古诗词",l:"zh",c:"毕竟西湖六月中，风光不与四时同。接天莲叶无穷碧，映日荷花别样红。"},
+  {t:"村居",a:"高鼎",g:"古诗词",l:"zh",c:"草长莺飞二月天，拂堤杨柳醉春烟。儿童散学归来早，忙趁东风放纸鸢。"},
+  {t:"所见",a:"袁枚",g:"古诗词",l:"zh",c:"牧童骑黄牛，歌声振林樾。意欲捕鸣蝉，忽然闭口立。"},
+  {t:"九月九日忆山东兄弟",a:"王维",g:"古诗词",l:"zh",c:"独在异乡为异客，每逢佳节倍思亲。遥知兄弟登高处，遍插茱萸少一人。"},
+  {t:"相思",a:"王维",g:"古诗词",l:"zh",c:"红豆生南国，春来发几枝。愿君多采撷，此物最相思。"},
+  {t:"鹿柴",a:"王维",g:"古诗词",l:"zh",c:"空山不见人，但闻人语响。返景入深林，复照青苔上。"},
+  {t:"送元二使安西",a:"王维",g:"古诗词",l:"zh",c:"渭城朝雨浥轻尘，客舍青青柳色新。劝君更尽一杯酒，西出阳关无故人。"},
+  {t:"出塞",a:"王昌龄",g:"古诗词",l:"zh",c:"秦时明月汉时关，万里长征人未还。但使龙城飞将在，不教胡马度阴山。"},
+  {t:"芙蓉楼送辛渐",a:"王昌龄",g:"古诗词",l:"zh",c:"寒雨连江夜入吴，平明送客楚山孤。洛阳亲友如相问，一片冰心在玉壶。"},
+  {t:"凉州词",a:"王之涣",g:"古诗词",l:"zh",c:"黄河远上白云间，一片孤城万仞山。羌笛何须怨杨柳，春风不度玉门关。"},
+  {t:"别董大",a:"高适",g:"古诗词",l:"zh",c:"千里黄云白日曛，北风吹雁雪纷纷。莫愁前路无知己，天下谁人不识君。"},
+  {t:"寻隐者不遇",a:"贾岛",g:"古诗词",l:"zh",c:"松下问童子，言师采药去。只在此山中，云深不知处。"},
+  {t:"枫桥夜泊",a:"张继",g:"古诗词",l:"zh",c:"月落乌啼霜满天，江枫渔火对愁眠。姑苏城外寒山寺，夜半钟声到客船。"},
+
+  {t:"论语·学而",a:"孔子",g:"小古文",l:"zh",c:'子曰：“学而时习之，不亦说乎？有朋自远方来，不亦乐乎？人不知而不愠，不亦君子乎？”'},
+  {t:"论语·述而",a:"孔子",g:"小古文",l:"zh",c:'子曰：“三人行，必有我师焉。择其善者而从之，其不善者而改之。”'},
+  {t:"论语·为政",a:"孔子",g:"小古文",l:"zh",c:'子曰：“温故而知新，可以为师矣。”子曰：“学而不思则罔，思而不学则殆。”'},
+  {t:"守株待兔",a:"韩非子",g:"小古文",l:"zh",c:"宋人有耕者。田中有株，兔走触株，折颈而死。因释其耒而守株，冀复得兔。兔不可复得，而身为宋国笑。"},
+  {t:"刻舟求剑",a:"吕氏春秋",g:"小古文",l:"zh",c:'楚人有涉江者，其剑自舟中坠于水，遽契其舟，曰：“是吾剑之所从坠。”舟止，从其所契者入水求之。舟已行矣，而剑不行，求剑若此，不亦惑乎？'},
+  {t:"掩耳盗铃",a:"吕氏春秋",g:"小古文",l:"zh",c:"范氏之亡也，百姓有得钟者。欲负而走，则钟大不可负。以椎毁之，钟况然有声。恐人闻之而夺己也，遽掩其耳。"},
+  {t:"揠苗助长",a:"孟子",g:"小古文",l:"zh",c:'宋人有闵其苗之不长而揠之者，芒芒然归，谓其人曰：“今日病矣！予助苗长矣！”其子趋而往视之，苗则槁矣。'},
+  {t:"鹬蚌相争",a:"战国策",g:"小古文",l:"zh",c:'蚌方出曝，而鹬啄其肉，蚌合而箝其喙。鹬曰：“今日不雨，明日不雨，即有死蚌。”蚌亦谓鹬曰：“今日不出，明日不出，即有死鹬。”两者不肯相舍，渔者得而并禽之。'},
+  {t:"杨氏之子",a:"世说新语",g:"小古文",l:"zh",c:'梁国杨氏子九岁，甚聪惠。孔君平诣其父，父不在，乃呼儿出。为设果，果有杨梅。孔指以示儿曰：“此是君家果。”儿应声答曰：“未闻孔雀是夫子家禽。”'},
+  {t:"精卫填海",a:"山海经",g:"小古文",l:"zh",c:"炎帝之少女，名曰女娃。女娃游于东海，溺而不返，故为精卫，常衔西山之木石，以堙于东海。"},
+
+  {t:"Sonnet 18",a:"William Shakespeare",g:"英文诗",l:"en",c:"Shall I compare thee to a summer's day?\nThou art more lovely and more temperate:\nRough winds do shake the darling buds of May,\nAnd summer's lease hath all too short a date;\nBut thy eternal summer shall not fade,\nNor lose possession of that fair thou ow'st;\nSo long as men can breathe or eyes can see,\nSo long lives this, and this gives life to thee."},
+  {t:"I Wandered Lonely as a Cloud",a:"William Wordsworth",g:"英文诗",l:"en",c:"I wandered lonely as a cloud\nThat floats on high o'er vales and hills,\nWhen all at once I saw a crowd,\nA host of golden daffodils;\nBeside the lake, beneath the trees,\nFluttering and dancing in the breeze."},
+  {t:"The Star",a:"Jane Taylor",g:"英文诗",l:"en",c:"Twinkle, twinkle, little star,\nHow I wonder what you are!\nUp above the world so high,\nLike a diamond in the sky."},
+  {t:"The Hare and the Tortoise",a:"Aesop",g:"英文寓言",l:"en",c:"A Hare was making fun of the Tortoise for being so slow.\n\"Do you ever get anywhere?\" he asked with a mocking laugh.\n\"Yes,\" replied the Tortoise, \"and I get there sooner than you think. Let us run a race.\"\nThe Hare agreed, and they started together. The Hare was soon far ahead.\nFeeling sure of winning, he lay down by the roadside and fell asleep.\nThe Tortoise plodded on and on. When the Hare awoke, the Tortoise was at the goal.\nSlow and steady wins the race."},
+  {t:"The Declaration of Independence (excerpt)",a:"1776",g:"英文长文",l:"en",c:"When in the Course of human events, it becomes necessary for one People to dissolve the Political Bands which have connected them with another, and to assume among the Powers of the Earth, the separate and equal Station to which the Laws of Nature and of Nature's God entitle them, a decent Respect to the Opinions of Mankind requires that they should declare the causes which impel them to the Separation.\nWe hold these Truths to be self-evident, that all Men are created equal, that they are endowed by their Creator with certain unalienable Rights, that among these are Life, Liberty, and the Pursuit of Happiness."}
+];
+
+/* =========================================================
+   视图
+   ========================================================= */
+const VIEWS = { today:viewToday, library:viewLibrary, review:viewReview, roam:viewRoam, stats:viewStats };
+
+function render(){
+  const tab = VIEWS[ui.tab] ? ui.tab : 'today';
+  $('#main').innerHTML = VIEWS[tab]();
+  $$('.tabbar button').forEach(b=> b.classList.toggle('on', b.dataset.tab === tab));
+  const s = stats();
+  $('#hdrStat').textContent = '今年 ' + s.done + ' 天 · ' + Math.round(s.rate*100) + '%';
+  $('#ybarFill').style.width = Math.min(100, s.rate*100) + '%';
+  window.scrollTo(0,0);
+}
+function switchTab(t){ ui.tab = t; ui.roam = null; ui.cloze = null; render(); }
+
+function emptyBox(icon, title, desc, btn){
+  return '<div class="empty"><div class="big">'+icon+'</div><div style="font-size:14px;color:var(--ink2)">'+title+
+    '</div><div class="small" style="margin-top:6px">'+desc+'</div>'+
+    (btn ? '<div style="margin-top:16px">'+btn+'</div>' : '')+'</div>';
+}
+
+/* ---------- 今日 ---------- */
+function viewToday(){
+  if(!state.docs.length){
+    return emptyBox('&#128218;','文库还是空的','导入一篇文章，或先载入公有领域样例库体验完整流程',
+      '<button class="btn pri" data-act="importSamples">载入样例库（45 篇）</button> '+
+      '<button class="btn" data-act="import">导入内容</button>');
+  }
+  const q = todayQueue();
+  const s = stats();
+  let h = '';
+
+  if(!storeOK){
+    h += '<div class="sec"><div class="card small" style="color:var(--warn)">'+
+      '当前环境无法本地保存（隐私模式，或换了访问地址）。刷新后内容会丢，请用「设置 → 导出数据」备份。</div></div>';
+  }
+
+  h += '<div class="sec"><div class="card"><div class="row between">'+
+       '<div><div class="num">'+s.done+'<small>天</small></div><div class="tiny dim">今年已读 · 目标 337 天（92%）</div></div>'+
+       '<div style="text-align:right"><div class="num">'+s.mastered+'<small>/ '+s.total+'</small></div><div class="tiny dim">已掌握单元</div></div>'+
+       '</div><div class="meter" style="margin-top:14px"><div class="bar"><i style="width:'+Math.min(100,s.rate*100)+'%"></i></div>'+
+       '<span class="tick" data-l="92%" style="left:92%"></span></div></div></div>';
+
+  h += '<div class="sec"><div class="sec-h"><span class="sec-t">到期复习</span><span class="sec-x">'+
+       (q.reviewTotal ? q.review.length+' / '+q.reviewTotal+' 项' : '无')+'</span></div>';
+  if(!q.review.length){
+    h += '<div class="card small dim" style="text-align:center;padding:18px">今天没有到期的复习项，去「补全」可以自由练</div>';
+  } else {
+    h += q.review.map(x=> taskRow(x.s, x.c, 'review')).join('');
+  }
+  h += '</div>';
+
+  h += '<div class="sec"><div class="sec-h"><span class="sec-t">今日新学</span><span class="sec-x">'+
+       (q.freshTotal ? q.fresh.length+' / '+q.freshTotal+' 项' : '无')+'</span></div>';
+  if(!q.fresh.length){
+    h += '<div class="card small dim" style="text-align:center;padding:18px">没有新的内容了，去文库导入更多</div>';
+  } else {
+    h += q.fresh.map(x=> taskRow(x.s, x.c, 'new')).join('');
+  }
+  h += '</div>';
+  return h;
+}
+function taskRow(seg, c, kind){
+  const t = seg.text;
+  const prev = t.length > 46 ? t.slice(0,46)+'…' : t;
+  const tag = kind==='new'
+    ? '<span class="tag new">新学</span>'
+    : '<span class="tag due">复习 · 第 '+(c.reps+1)+' 次</span>';
+  return '<div class="card task"><div class="grow"><div class="row" style="margin-bottom:6px">'+tag+
+    '<span class="tag src">'+esc(seg.doc.title)+'</span></div>'+
+    '<div class="task-txt'+(seg.doc.lang==='zh'?' zh':'')+'">'+esc(prev)+'</div></div>'+
+    '<button class="btn sm pri" data-act="'+(kind==='new'?'read':'cloze')+'" data-id="'+seg.id+'">'+
+    (kind==='new'?'朗读':'补全')+'</button></div>';
+}
+
+/* ---------- 文库 ---------- */
+function viewLibrary(){
+  let h = '<div class="sec"><div class="row" style="gap:8px">'+
+    '<button class="btn pri grow" data-act="import">导入内容</button>'+
+    '<button class="btn" data-act="importSamples">样例库</button></div>'+
+    '<div class="tiny dim" style="margin-top:8px">支持网页链接、下载链接、已解析的 JSON 数据文件，或直接粘贴文本</div></div>';
+
+  if(!state.docs.length){
+    return h + emptyBox('&#128218;','还没有内容','粘贴一篇文章，或载入样例库');
+  }
+  const groups = {};
+  state.docs.forEach(d=>{ (groups[d.genre||'未分类'] = groups[d.genre||'未分类'] || []).push(d); });
+  for(const g in groups){
+    h += '<div class="sec"><div class="sec-h"><span class="sec-t">'+esc(g)+'</span><span class="sec-x">'+groups[g].length+' 篇</span></div>';
+    h += groups[g].map(d=>{
+      const segs = d.segments.length;
+      const done = d.segments.filter((_,i)=>{
+        const c = state.cards[d.id+'::'+i];
+        return c && c.status === 'mastered';
+      }).length;
+      return '<div class="doc"><div class="doc-b"><div class="doc-t">'+esc(d.title)+'</div>'+
+        '<div class="doc-m">'+esc(d.author||'')+' · '+segs+' 个单元 · 已掌握 '+done+
+        (d.lang==='en'?' · EN':'')+'</div></div>'+
+        '<button class="btn sm" data-act="docView" data-id="'+d.id+'">查看</button></div>';
+    }).join('');
+    h += '</div>';
+  }
+  return h;
+}
+
+/* ---------- 补全（连续练习） ---------- */
+function randLearned(){
+  const pool = allSegments().filter(s=> cardOf(s.id).lastReview);
+  return pool.length ? pool[Math.floor(Math.random()*pool.length)] : null;
+}
+function viewReview(){
+  const q = todayQueue();
+  // 当前题必须留住：核对后这段不再到期，重算队列会把它挤出首位，
+  // 若直接取队列首位，评分结果刚算完就被冲掉，用户永远看不到正确率
+  const cur = (ui.cloze && ui.cloze.seg) ? ui.cloze.seg : null;
+  const seg = ui.forceSeg || cur || (q.review.length ? q.review[0].s : randLearned());
+  ui.forceSeg = null;
+  if(!seg){
+    return emptyBox('&#9998;','还没有可练习的内容','先在「今日」学几段，第二天它们会进入复习队列');
+  }
+  if(!ui.cloze || ui.cloze.seg.id !== seg.id){
+    ui.cloze = { seg:seg, tokens:makeCloze(seg.text, seg.doc.lang, state.settings.density), done:false, result:null };
+  }
+  const cz = ui.cloze;
+  const zh = seg.doc.lang === 'zh';
+  const body = cz.tokens.map((tk,i)=> tk.blank
+    ? '<input class="gap'+(cz.done?' '+(tk._ok?'ok':'no'):'')+'" data-i="'+i+'" '+
+      (cz.done?'disabled value="'+esc(tk._val)+'"':'placeholder="'+esc(tk.hint)+'"')+'>'+
+      (cz.done && !tk._ok ? '<span class="ans">'+esc(tk.answer)+'</span>' : '')
+    : esc(tk.t)).join('');
+
+  let h = '<div class="sec"><div class="card">'+
+    '<div class="row" style="margin-bottom:10px"><span class="tag src">'+esc(seg.doc.title)+'</span>'+
+    '<span class="tiny dim grow">'+(q.review.length?q.review.length+' 项待复习':'自由练习')+'</span></div>'+
+    '<div class="cloze'+(zh?' zh':'')+'" id="clozeBox">'+body+'</div>';
+
+  if(cz.done){
+    const r = cz.result;
+    h += '<div class="hr"></div><div class="row between small">'+
+      '<span>正确率 <b>'+Math.round(r.rate*100)+'%</b> · '+r.ok+'/'+r.total+' 空</span>'+
+      '<span class="dim">下次复习：'+r.next+'</span></div>'+
+      '<div class="tiny dim" style="margin-top:6px">'+r.note+'</div>';
+    h += '<div class="row" style="margin-top:12px;gap:8px"><button class="btn pri grow" data-act="nextCloze">下一题</button>'+
+      '<button class="btn" data-act="clozeSpeak">朗读原文</button></div>';
+  } else {
+    h += '<div class="row" style="margin-top:14px;gap:8px">'+
+      '<button class="btn pri grow" data-act="checkCloze">核对</button>'+
+      '<button class="btn" data-act="clozeGiveUp">想不起来</button>'+
+      '<button class="btn" data-act="clozeSpeak">朗读</button></div>'+
+      '<div class="tiny dim" style="margin-top:8px">先凭记忆填，填完再核对。只填空格，不用默写整段。</div>';
+  }
+  h += '</div></div>';
+  return h;
+}
+function norm(s){
+  let t = String(s==null?'':s);
+  t = t.replace(/[\uFF01-\uFF5E]/g, c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0));
+  t = t.replace(/[\u3000\s]/g,'');
+  t = t.replace(/[，。！？；：、,.!?;:"'“”‘’（）《》…—-]/g,'');
+  return t.toLowerCase();
+}
+function doCheckCloze(){
+  const cz = ui.cloze; if(!cz || cz.done) return;
+  const inputs = $$('#clozeBox .gap');
+  if(!inputs.length){ toast('这道题没有挖空'); return; }
+  let ok = 0;
+  inputs.forEach(inp=>{
+    const tk = cz.tokens[+inp.dataset.i];
+    const val = inp.value;
+    const good = norm(val) === norm(tk.answer);
+    tk._ok = good; tk._val = val;
+    if(good) ok++;
+  });
+  const rate = ok / inputs.length;
+  const q = rateToQ(rate);
+  const c = cardOf(cz.seg.id);
+  applyReview(c, q);
+  save(); markCheckin();
+  const next = new Date(Date.now() + c.interval*DAY);
+  cz.done = true;
+  cz.result = { ok, total:inputs.length, rate, next:fmt(next),
+    note: q>=5 ? '很熟了，下次间隔拉长到 '+c.interval+' 天'
+        : q>=4 ? '记得不错，'+c.interval+' 天后再来'
+        : q>=3 ? '有点生疏，'+c.interval+' 天后重逢'
+        : '明天就再来一遍' };
+  render();
+}
+function doGiveUp(){
+  const cz = ui.cloze; if(!cz || cz.done) return;
+  const inputs = $$('#clozeBox .gap');
+  inputs.forEach(inp=>{ const tk = cz.tokens[+inp.dataset.i]; tk._ok = false; tk._val = ''; });
+  const c = cardOf(cz.seg.id);
+  applyReview(c, 0);
+  save(); markCheckin();
+  cz.done = true;
+  cz.result = { ok:0, total:inputs.length, rate:0, next:fmt(new Date(Date.now()+DAY)), note:'明天就再来一遍' };
+  render();
+}
+
+/* ---------- 漫游 ---------- */
+function viewRoam(){
+  if(!ui.roam) ui.roam = pickRoam();
+  const seg = ui.roam;
+  if(!seg) return emptyBox('&#10227;','还没有学过的内容','先在「今日」朗读几段，之后就能在这里自由重温');
+  const c = cardOf(seg.id);
+  const zh = seg.doc.lang === 'zh';
+  return '<div class="sec"><div class="card">'+
+    '<div class="row" style="margin-bottom:12px"><span class="tag src">'+esc(seg.doc.title)+'</span>'+
+    '<span class="tiny dim grow">上次复习 '+c.lastReview+' · 已复习 '+(c.seen||0)+' 次</span></div>'+
+    '<div class="read'+(zh?' zh':'')+'" id="roamText">'+esc(seg.text)+'</div>'+
+    '<div class="hr"></div>'+
+    '<div class="row" style="gap:8px"><button class="btn grow" data-act="roamSpeak">朗读</button>'+
+    '<button class="btn" data-act="roamNext">换一段</button></div>'+
+    '<div class="row" style="gap:8px;margin-top:8px">'+
+    '<button class="btn grow" data-act="roamRate" data-q="0">忘了</button>'+
+    '<button class="btn grow" data-act="roamRate" data-q="3">模糊</button>'+
+    '<button class="btn pri grow" data-act="roamRate" data-q="5">记得</button></div>'+
+    '<div class="tiny dim" style="margin-top:10px">漫游按遗忘紧迫度加权抽取：越久没复习、难度越高的段落越容易出现。</div>'+
+    '</div></div>';
+}
+
+/* ---------- 统计 ---------- */
+function viewStats(){
+  const s = stats();
+  const cells = heatCells();
+  let h = '<div class="sec"><div class="card">'+
+    '<div class="row between"><div><div class="num">'+s.done+'<small>天</small></div>'+
+    '<div class="tiny dim">今年已读 · 共 '+s.elapsed+' 天</div></div>'+
+    '<div style="text-align:right"><div class="num">'+Math.round(s.rate*100)+'<small>%</small></div>'+
+    '<div class="tiny dim">目标 92% · 337 天</div></div></div>'+
+    '<div class="meter" style="margin-top:14px"><div class="bar"><i style="width:'+Math.min(100,s.rate*100)+'%"></i></div>'+
+    '<span class="tick" data-l="92%" style="left:92%"></span></div>'+
+    '<div class="tiny dim" style="margin-top:16px">还差 '+Math.max(0,TARGET_DAYS-s.done)+' 天达标 · 休读额度剩 '+s.left+' 天</div>'+
+    '</div></div>';
+
+  h += '<div class="sec"><div class="sec-h"><span class="sec-t">掌握分布</span></div><div class="card">'+
+    '<div class="kv"><span>已掌握</span><b>'+s.mastered+'</b></div>'+
+    '<div class="kv"><span>学习中</span><b>'+s.learning+'</b></div>'+
+    '<div class="kv"><span>未开始</span><b>'+s.untouched+'</b></div>'+
+    '<div class="kv"><span>文库篇数</span><b>'+s.docs+'</b></div>'+
+    '<div class="kv"><span>记忆单元</span><b>'+s.total+'</b></div></div></div>';
+
+  h += '<div class="sec"><div class="sec-h"><span class="sec-t">最近 12 周</span><span class="sec-x">每格一天</span></div>'+
+    '<div class="card"><div class="heat">'+cells.map(c=>'<i class="'+(c.n?'l'+(c.n>4?3:c.n>1?2:1):'')+'" title="'+c.key+(c.n?' · '+c.n+' 次':'')+'"></i>').join('')+'</div>'+
+    '<div class="tiny dim" style="margin-top:10px">缺勤 '+s.missed+' 天，额度 '+ALLOWANCE+' 天，超出才算中断。</div></div></div>';
+
+  h += '<div class="sec"><button class="btn pri block" data-act="share">生成打卡分享图</button>'+
+    '<div class="row" style="gap:8px;margin-top:8px">'+
+    '<button class="btn grow" data-act="export">导出数据</button>'+
+    '<button class="btn grow" data-act="pickImportFile">导入数据</button></div></div>';
+  return h;
+}
+function heatCells(){
+  const out = [];
+  const end = new Date(); end.setHours(0,0,0,0);
+  const start = new Date(end);
+  start.setDate(start.getDate() - (7*11 + end.getDay()));
+  for(const dt = new Date(start); dt <= end; dt.setDate(dt.getDate()+1)){
+    const key = fmt(dt);
+    const rec = state.checkins[key];
+    out.push({ key, n: rec ? rec.n : 0 });
+  }
+  return out;
+}
+
+/* ---------- Modal ---------- */
+function showModal(title, html){
+  $('#modalBox').innerHTML = '<div class="modal-h"><span class="modal-t">'+title+'</span>'+
+    '<button class="icon-btn" data-act="closeModal">&#10005;</button></div>'+html;
+  $('#modal').classList.remove('hidden');
+}
+function closeModal(){ $('#modal').classList.add('hidden'); }
+
+function openRead(id, hint){
+  const seg = findSeg(id); if(!seg) return;
+  const zh = seg.doc.lang === 'zh';
+  ui.read = { id:id, times:0 };
+  showModal('朗读 · '+esc(seg.doc.title)+
+    (hint ? ' <span class="tiny dim">'+hint+'</span>' : ''),
+    '<div class="read'+(zh?' zh':'')+'" style="margin-bottom:16px">'+esc(seg.text)+'</div>'+
+    '<div class="row" style="gap:8px"><button class="btn pri grow" data-act="readSpeak">朗读一遍</button>'+
+    '<button class="btn" data-act="readStop">停止</button></div>'+
+    '<div class="tiny dim" style="margin:10px 0 14px">建议出声读两遍，再标记完成。朗读不计分，只建立初次印象。</div>'+
+    '<button class="btn block" data-act="readDone">完成朗读，加入记忆队列</button>');
+  speak(seg.text, seg.doc.lang);
+}
+function finishRead(){
+  const id = ui.read && ui.read.id; if(!id) return;
+  const c = cardOf(id);
+  c.lastReview = today(); c.interval = 1; c.reps = 0; c.status = 'learning';
+  c.seen = (c.seen||0)+1;
+  save(); markCheckin();
+
+  // 连续朗读：完成一段直接接下一段，不退回列表
+  const goal = state.settings.newPerDay || 3;
+  const doneToday = Object.values(state.cards)
+    .filter(x=> x.lastReview === today() && x.reps === 0).length;
+  const next = todayQueue().fresh[0];
+
+  if(next && doneToday < goal){
+    render();
+    openRead(next.s.id, '第 '+(doneToday+1)+' / '+goal+' 段');
+    toast('已加入记忆队列 · 今日新学 '+doneToday+'/'+goal);
+  } else {
+    ui.read = null; closeModal(); render();
+    toast(doneToday >= goal
+      ? '今日新学 '+doneToday+'/'+goal+' 全部完成，明天见'
+      : '今日新学已全部读完');
+  }
+}
+function findSeg(id){
+  const p = String(id||'').split('::');
+  const d = state.docs.find(x=>x.id === p[0]);
+  if(!d) return null;
+  const i = parseInt(p[1], 10);
+  if(!(i >= 0) || !d.segments[i]) return null;
+  return { id, text:d.segments[i], doc:d, idx:i };
+}
+function openDoc(id){
+  const d = state.docs.find(x=>x.id===id); if(!d) return;
+  const zh = d.lang === 'zh';
+  showModal(esc(d.title),
+    '<div class="row" style="margin-bottom:12px"><span class="tag src">'+esc(d.genre)+'</span>'+
+    '<span class="tiny dim">'+d.segments.length+' 个记忆单元</span>'+
+    '<span class="grow"></span><button class="btn sm" data-act="delDoc" data-id="'+d.id+'">删除</button></div>'+
+    d.segments.map((s,i)=>{
+      const c = state.cards[d.id+'::'+i] || newCard();
+      const badge = c.status==='mastered' ? '<span class="tag done">已掌握</span>'
+        : c.status==='learning' ? '<span class="tag due">学习中</span>' : '<span class="tag">未开始</span>';
+      return '<div class="row" style="align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line-soft)">'+
+        '<div class="grow" style="font-size:13px;line-height:1.8'+(zh?';font-family:\'Songti SC\',serif':'')+'">'+esc(s)+'</div>'+
+        '<span style="margin-left:8px">'+badge+'</span></div>';
+    }).join(''));
+}
+
+/* ---------- 导入 ---------- */
+function openImport(){
+  showModal('导入内容',
+    '<div class="seg" id="impTabs">'+
+    '<button class="on" data-imp="url">链接</button><button data-imp="paste">粘贴</button>'+
+    '<button data-imp="file">文件</button><button data-imp="sample">样例库</button></div>'+
+    '<div id="impBody" style="margin-top:14px"></div><div id="impPreview"></div>');
+  renderImpBody('url');
+}
+function renderImpBody(kind){
+  ui.impKind = kind;
+  $$('#impTabs button').forEach(b=> b.classList.toggle('on', b.dataset.imp === kind));
+  const box = $('#impBody');
+  if(kind === 'url'){
+    box.innerHTML = '<label class="lab">网页链接 / 下载链接 / 数据文件链接</label>'+
+      '<input class="fld" id="impUrl" placeholder="https://..." autocomplete="off">'+
+      '<button class="btn pri block" data-act="fetchUrl" style="margin-top:10px">抓取</button>'+
+      '<div class="tiny dim" style="margin-top:8px">抓取走公共代理（设置里可换），动态渲染的页面可能取不到正文。'+
+      '失败时请在网页按 Ctrl/Cmd+S 存成 .html，到「文件」页导入，或直接复制网页源码粘到「粘贴」页。</div>';
+  } else if(kind === 'paste'){
+    box.innerHTML = '<label class="lab">粘贴全文（也支持直接粘贴网页源码）</label>'+
+      '<textarea class="fld" id="impText" placeholder="把文章粘进来，空行分段亦可；粘贴网页源码会自动提取正文"></textarea>'+
+      '<div class="grid2" style="margin-top:10px"><div><label class="lab">标题</label>'+
+      '<input class="fld" id="impTitle" placeholder="未命名"></div>'+
+      '<div><label class="lab">体裁</label><input class="fld" id="impGenre" placeholder="未分类"></div></div>'+
+      '<button class="btn pri block" data-act="pastePreview" style="margin-top:10px">预览分段</button>';
+  } else if(kind === 'file'){
+    box.innerHTML = '<label class="lab">选择文件（txt / md / json / html）</label>'+
+      '<input class="fld" type="file" id="impFile" accept=".txt,.md,.markdown,.json,.html,.htm,text/plain,text/html,application/json">'+
+      '<div class="tiny dim" style="margin-top:8px">JSON 支持 reader92.v1 格式，也支持裸数组或单篇对象。'+
+      '网页另存为 .html 后导入，会自动提取正文。</div>';
+    $('#impFile').addEventListener('change', async e=>{
+      const f = e.target.files[0]; if(!f) return;
+      try{ handleIncoming(await readFile(f), f.name); }
+      catch(err){ toast('文件读取失败'); }
+    });
+  } else {
+    box.innerHTML = '<div class="small" style="line-height:1.9">样例库含 30 首古诗词、10 篇小古文、5 篇英文材料，'+
+      '全部为公有领域作品，可安全内置。散文类因版权原因未收录，请自行导入。</div>'+
+      '<button class="btn pri block" data-act="importSamples" style="margin-top:12px">全部载入（45 篇）</button>';
+    $('#impPreview').innerHTML = '';
+  }
+}
+function readFile(f){
+  return new Promise((res,rej)=>{
+    const r = new FileReader();
+    r.onload = ()=> res(String(r.result));
+    r.onerror = ()=> rej(new Error('读取失败'));
+    r.readAsText(f, 'utf-8');
+  });
+}
+
+/* ---------- 浏览器内网页正文提取（不需要服务端） ----------
+   CORS 决定了前端无法直接抓任意网页，但「网页源码」到了本地就能解析：
+   粘贴源码或拖入 .html 文件，用 DOMParser 提取正文，清洗逻辑与服务端一致。 */
+const NOISE_RE =
+  /(登录|注册|登录后可|版权所有|Copyright|免责声明|相关阅读|推荐阅读|延伸阅读|Read more|Subscribe|Sign in|Sign up|Cookie|Advertisement|点击查看|扫一扫|长按|关注我们)/i;
+
+function looksLikeHtml(t){
+  return /<[a-z]+[\s>]/i.test(t) && /<\/(html|body|p|div|article|section|h[1-6])>/i.test(t);
+}
+function extractFromHtml(html){
+  let doc;
+  try{ doc = new DOMParser().parseFromString(html, 'text/html'); }
+  catch(e){ return null; }
+  const tEl = doc.querySelector('title'), hEl = doc.querySelector('h1');
+  const title = ((tEl && tEl.textContent) || (hEl && hEl.textContent) || '').replace(/\s+/g,' ').trim();
+
+  $$('script,style,noscript,svg,iframe,nav,footer,header,aside,form,button', doc)
+    .forEach(n=> n.remove());
+
+  let root = doc.querySelector('article') || doc.querySelector('main');
+  const solid = el => (el && el.textContent ? el.textContent.replace(/\s/g,'').length : 0);
+  if(solid(root) < 120){
+    let best = null, bestScore = -1;
+    $$('div', doc).forEach(d=>{
+      const raw = d.textContent || '';
+      if(raw.replace(/\s/g,'').length < 120) return;
+      const linkLen = $$('a', d).reduce((a,x)=> a + (x.textContent||'').length, 0);
+      const score = raw.length + d.querySelectorAll('p').length * 80 - linkLen * 0.6;
+      if(score > bestScore){ bestScore = score; best = d; }
+    });
+    root = best || doc.body;
+  }
+  if(!root) return null;
+
+  /* 压缩过的网页把正文和页脚挤在同一行，没有换行就无法按行去噪，也会毁掉分段。
+     所以在块级元素之间补换行（在副本上操作，不碰原文档）。 */
+  const work = root.cloneNode(true);
+  $$('p,div,li,h1,h2,h3,h4,h5,h6,blockquote,pre,tr,td,br', work)
+    .forEach(el=>{ try{ el.insertAdjacentText('afterend','\n'); }catch(e){} });
+
+  const rawLines = (work.textContent || '').split('\n')
+    .map(l=> l.replace(/[\t\u00a0 ]+/g,' ').trim()).filter(Boolean);
+  const keep = rawLines.filter(l=>
+    l.length >= 2 && !/^https?:\/\/\S+$/.test(l) && !(NOISE_RE.test(l) && l.length < 40));
+  // 去噪过头时退回原文：宁可留一点噪音，也不要把正文整段丢掉
+  const lines = keep.join('').length >= rawLines.join('').length * 0.4 ? keep : rawLines;
+  const text = lines.join('\n');
+  if(text.replace(/\s/g,'').length < 20) return null;
+  return { title: title.slice(0,60), text, lang: detectLang(text) };
+}
+
+/** 清洗公共代理返回的 markdown（去元数据头、图片、链接标记） */
+function cleanProxyText(raw){
+  const lines = String(raw).split('\n');
+  const out = [];
+  let title = '', inMeta = true;
+  for(const l of lines){
+    const t = l.trim();
+    if(inMeta){
+      const m = /^Title:\s*(.+)$/i.exec(t);
+      if(m){ title = m[1].trim(); continue; }
+      if(/^(URL Source|Published Time|Markdown Content):/i.test(t)) continue;
+      if(t === '') continue;
+      inMeta = false;
+    }
+    out.push(t);
+  }
+  const text = out.join('\n')
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, '')          // 图片
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1')       // 链接只留文字
+    .replace(/^\s*#{1,6}\s+/gm, '')                // 标题符号
+    .replace(/\*\*|__/g, '')                       // 粗体标记
+    .split('\n').map(x=> x.trim())
+    .filter(x=> x && !/^\|?[\s:\-|]+\|$/.test(x))  // 表格分隔行
+    .map(x=> /^\|.*\|$/.test(x)                    // 表格行拍平成一行文字
+      ? x.replace(/^\||\|$/g,'').replace(/\|/g,' ').replace(/\s+/g,' ').trim() : x)
+    .filter(Boolean).join('\n');
+  return { title, text };
+}
+
+function handleIncoming(text, name){
+  const parsed = tryReadzy(text);
+  if(parsed){
+    const n = importReadzy(parsed);
+    if(n > 0){ closeModal(); render(); }
+    return;
+  }
+  if(looksLikeHtml(text)){
+    const ex = extractFromHtml(text);
+    if(ex){
+      ui.preview = { title: ex.title || (name||'').replace(/\.(html?|txt|md|json)$/i,'') || '未命名',
+                     text: ex.text, lang: ex.lang, genre:'', source:'' };
+      renderPreview();
+      toast('已从网页源码提取正文');
+      return;
+    }
+    toast('未能从源码中提取正文，按纯文本处理');
+  }
+  ui.preview = { title:(name||'').replace(/\.(txt|md|json)$/i,'') || '未命名', text:text, lang:detectLang(text), genre:'', source:'' };
+  renderPreview();
+}
+function tryReadzy(t){
+  try{
+    const o = JSON.parse(t);
+    if(Array.isArray(o) || (o && (Array.isArray(o.docs) || o.title))) return o;
+  }catch(e){}
+  return null;
+}
+function importReadzy(o){
+  let arr = [];
+  if(Array.isArray(o)) arr = o;
+  else if(o && Array.isArray(o.docs)) arr = o.docs;
+  else if(o && o.title) arr = [o];
+  let n = 0;
+  for(const d of arr){
+    if(!d || (!d.title && !d.content && !d.segments)) continue;
+    if(d.title && state.docs.some(x=>x.title === d.title)) continue;
+    addDoc({ title:d.title||'未命名', author:d.author, genre:d.genre, lang:d.lang,
+             text:d.content||'', segments:d.segments, source:d.source, tags:d.tags });
+    n++;
+  }
+  toast(n ? '已导入 '+n+' 篇' : '没有新增内容（可能已存在）');
+  return n;
+}
+function renderPreview(){
+  const p = ui.preview; if(!p) return;
+  const segs = segmentDoc(p.text, p.lang, state.settings.gran);
+  $('#impPreview').innerHTML = '<hr class="hr">'+
+    '<label class="lab">标题</label><input class="fld" id="pvTitle" value="'+esc(p.title)+'">'+
+    '<div class="grid2" style="margin-top:10px"><div><label class="lab">语言</label>'+
+    '<select class="fld" id="pvLang"><option value="zh"'+(p.lang==='zh'?' selected':'')+'>中文</option>'+
+    '<option value="en"'+(p.lang==='en'?' selected':'')+'>英文</option></select></div>'+
+    '<div><label class="lab">体裁</label><input class="fld" id="pvGenre" value="'+esc(p.genre||'未分类')+'"></div></div>'+
+    '<label class="lab" style="margin-top:12px">分段粒度</label>'+
+    '<div class="seg" id="pvGran"><button data-g="s" class="'+(state.settings.gran==='s'?'on':'')+'">短</button>'+
+    '<button data-g="m" class="'+(state.settings.gran==='m'?'on':'')+'">中</button>'+
+    '<button data-g="l" class="'+(state.settings.gran==='l'?'on':'')+'">长</button></div>'+
+    '<div class="small dim" style="margin:10px 0 6px">切成 '+segs.length+' 个记忆单元</div>'+
+    '<div>'+segs.slice(0,6).map(s=>'<div class="pv">'+esc(s)+'</div>').join('')+
+    (segs.length>6 ? '<div class="tiny dim" style="margin-top:6px">… 其余 '+(segs.length-6)+' 段</div>' : '')+'</div>'+
+    '<button class="btn pri block" data-act="confirmImport" style="margin-top:14px">导入 '+segs.length+' 个单元</button>';
+}
+function addDoc(o){
+  const lang = o.lang || detectLang(o.text||'');
+  let segs = (o.segments && o.segments.length) ? o.segments : segmentDoc(o.text||'', lang, state.settings.gran);
+  segs = segs.map(s=>String(s).trim()).filter(Boolean);
+  if(!segs.length) return null;
+  const doc = { id:uid('doc'), title:o.title||'未命名', genre:o.genre||'未分类', lang,
+    author:o.author||'', source:o.source||'', tags:o.tags||[],
+    createdAt:new Date().toISOString(), segments:segs };
+  state.docs.push(doc);
+  segs.forEach((_,i)=> cardOf(doc.id+'::'+i));
+  save();
+  return doc;
+}
+function importSamples(){
+  let n = 0;
+  for(const s of SAMPLES){
+    if(state.docs.some(d=>d.title === s.t)) continue;
+    addDoc({ title:s.t, author:s.a, genre:s.g, lang:s.l, text:s.c, source:'公有领域 · 内置样例' });
+    n++;
+  }
+  save(); closeModal();
+  toast(n ? ('已载入 '+n+' 篇样例') : '样例库已在文库中');
+  render();
+}
+
+/* ---------- 设置 ---------- */
+function openSettings(){
+  const st = state.settings;
+  showModal('设置',
+    '<label class="lab">分段粒度（新导入时生效）</label>'+
+    '<div class="seg" style="margin-bottom:14px"><button data-g="s" class="'+(st.gran==='s'?'on':'')+'">短</button>'+
+    '<button data-g="m" class="'+(st.gran==='m'?'on':'')+'">中</button>'+
+    '<button data-g="l" class="'+(st.gran==='l'?'on':'')+'">长</button></div>'+
+    '<div class="grid2"><div><label class="lab">每日新学数</label>'+
+    '<input class="fld" type="number" id="setNew" min="1" max="50" value="'+st.newPerDay+'"></div>'+
+    '<div><label class="lab">每日复习上限</label>'+
+    '<input class="fld" type="number" id="setCap" min="1" max="200" value="'+st.reviewCap+'"></div></div>'+
+    '<label class="lab" style="margin-top:14px">挖空密度</label>'+
+    '<div class="seg" style="margin-bottom:14px"><button data-d="low" class="'+(st.density==='low'?'on':'')+'">低</button>'+
+    '<button data-d="m" class="'+(st.density==='m'?'on':'')+'">中</button>'+
+    '<button data-d="high" class="'+(st.density==='high'?'on':'')+'">高</button></div>'+
+    '<div class="grid2"><div><label class="lab">朗读语速</label>'+
+    '<input class="fld" type="number" id="setRate" min="0.5" max="1.5" step="0.1" value="'+st.rate+'"></div>'+
+    '<div><label class="lab">主题</label><select class="fld" id="setTheme">'+
+    '<option value="light"'+(st.theme==='light'?' selected':'')+'>浅色</option>'+
+    '<option value="dark"'+(st.theme==='dark'?' selected':'')+'>深色</option></select></div></div>'+
+    '<div class="row" style="margin-top:14px"><label class="lab" style="margin:0">语音朗读</label>'+
+    '<span class="grow"></span><input type="checkbox" id="setVoice"'+(st.voice?' checked':'')+'></div>'+
+    '<label class="lab" style="margin-top:14px">链接抓取代理（留空则只用本地服务）</label>'+
+    '<input class="fld" id="setProxy" placeholder="https://r.jina.ai/" value="'+esc(st.proxy||'')+'">'+
+    '<div class="tiny dim" style="margin-top:6px">纯前端部署时靠它抓取网页；代理不可用不影响其他功能。</div>'+
+    '<hr class="hr">'+
+    '<div class="row" style="gap:8px"><button class="btn grow" data-act="export">导出数据</button>'+
+    '<button class="btn grow" data-act="pickImportFile">导入数据</button></div>'+
+    '<div class="tiny dim" style="margin-top:8px">数据存在当前地址的浏览器本地。换浏览器、换端口、清缓存都会看到另一份数据，用导出备份最稳。</div>'+
+    '<button class="btn block" data-act="wipe" style="margin-top:8px;color:var(--bad)">清空全部数据</button>'+
+    '<button class="btn pri block" data-act="saveSettings" style="margin-top:14px">保存</button>');
+}
+function saveSettings(){
+  const st = state.settings;
+  st.newPerDay = Math.max(1, parseInt($('#setNew').value,10) || 3);
+  st.reviewCap = Math.max(1, parseInt($('#setCap').value,10) || 20);
+  st.rate = parseFloat($('#setRate').value) || 0.9;
+  st.theme = $('#setTheme').value;
+  st.voice = $('#setVoice').checked;
+  st.proxy = $('#setProxy').value.trim();
+  document.documentElement.setAttribute('data-theme', st.theme);
+  save(); closeModal(); render();
+  toast('设置已保存');
+}
+function download(text, name, type){
+  const blob = new Blob([text], { type: type||'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  document.body.appendChild(a); a.click();
+  setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+function exportData(){
+  const payload = { format:'readzy.v1', exportedAt:new Date().toISOString(),
+    docs: state.docs.map(d=>({
+      id:d.id, title:d.title, genre:d.genre, lang:d.lang, author:d.author,
+      source:d.source, tags:d.tags, createdAt:d.createdAt,
+      content:d.segments.join('\n'),
+      progress:d.segments.map((_,i)=>{
+        const c = state.cards[d.id+'::'+i] || newCard();
+        return { i, ease:+c.ease.toFixed(2), interval:c.interval, reps:c.reps,
+                 lastReview:c.lastReview, status:c.status };
+      })
+    }))
+  };
+  download(JSON.stringify(payload, null, 2), '92reader-'+today()+'.json', 'application/json');
+  toast('已导出');
+}
+
+/* ---------- 分享图 ---------- */
+function shareCard(){
+  const s = stats();
+  const W = 750, H = 1080;
+  const c = document.createElement('canvas');
+  c.width = W; c.height = H;
+  const g = c.getContext('2d');
+  const dark = state.settings.theme === 'dark';
+  const bg = dark ? '#0d0d11' : '#fbfbfc';
+  const ink = dark ? '#e9e9ef' : '#16161d';
+  const ink2 = dark ? '#a0a0ad' : '#5c5c68';
+  const ink3 = dark ? '#6f6f80' : '#92929c';
+  const line = dark ? '#26262f' : '#e7e7ec';
+  const accent = '#5e6ad2';
+
+  g.fillStyle = bg; g.fillRect(0,0,W,H);
+  g.fillStyle = accent; g.fillRect(0,0,W,6);
+
+  g.fillStyle = ink;
+  g.font = '600 34px -apple-system,"PingFang SC",sans-serif';
+  g.fillText('就爱读', 56, 92);
+  g.fillStyle = ink3;
+  g.font = '400 18px -apple-system,sans-serif';
+  g.fillText('92READER', 152, 92);
+
+  g.fillStyle = ink2;
+  g.font = '400 20px -apple-system,"PingFang SC",sans-serif';
+  g.fillText(s.year + ' 年阅读记录', 56, 148);
+
+  // 大数字
+  g.fillStyle = ink;
+  g.font = '650 132px -apple-system,"PingFang SC",sans-serif';
+  g.fillText(String(s.done), 56, 300);
+  const wNum = g.measureText(String(s.done)).width;
+  g.fillStyle = ink3;
+  g.font = '400 30px -apple-system,"PingFang SC",sans-serif';
+  g.fillText('天', 56 + wNum + 12, 300);
+
+  g.fillStyle = ink2;
+  g.font = '400 22px -apple-system,"PingFang SC",sans-serif';
+  g.fillText('今年已读 ' + s.done + ' 天 · 完成率 ' + Math.round(s.rate*100) + '%', 56, 350);
+
+  // 进度条
+  const bx = 56, by = 396, bw = W - 112, bh = 18;
+  g.fillStyle = line; roundRect(g, bx, by, bw, bh, 9); g.fill();
+  g.fillStyle = accent; roundRect(g, bx, by, Math.max(6, bw * Math.min(1, s.rate)), bh, 9); g.fill();
+  g.fillStyle = '#b8791a';
+  g.fillRect(bx + bw*0.923 - 1, by - 8, 3, bh + 16);
+  g.font = '400 17px -apple-system,sans-serif';
+  g.fillText('92%  ·  337 天', bx + bw*0.923 - 30, by + 56);
+
+  g.fillStyle = ink3;
+  g.font = '400 18px -apple-system,"PingFang SC",sans-serif';
+  g.fillText('还差 ' + Math.max(0, TARGET_DAYS - s.done) + ' 天达标 · 休读额度剩 ' + s.left + ' 天', 56, by + 104);
+
+  // 数据块
+  const rows = [['已掌握', s.mastered + ' 个'], ['学习中', s.learning + ' 个'], ['文库', s.docs + ' 篇']];
+  rows.forEach((r, i)=>{
+    const y = 620 + i*72;
+    g.fillStyle = line; g.fillRect(56, y - 26, W - 112, 1);
+    g.fillStyle = ink2; g.font = '400 22px -apple-system,"PingFang SC",sans-serif';
+    g.fillText(r[0], 56, y);
+    g.fillStyle = ink; g.font = '600 24px -apple-system,"PingFang SC",sans-serif';
+    const tw = g.measureText(r[1]).width;
+    g.fillText(r[1], W - 56 - tw, y);
+  });
+
+  // 热力图（最近 12 周）
+  const cells = heatCells().slice(-84);
+  const cw = 13, chh = 13, gap = 5;
+  const hx = 56, hy = 812;
+  cells.forEach((c2, i)=>{
+    const col = Math.floor(i/7), row = i%7;
+    const x = hx + col*(cw+gap), y = hy + row*(chh+gap);
+    g.fillStyle = c2.n ? (c2.n > 4 ? accent : c2.n > 1 ? '#9aa5ee' : '#cdd3f7') : line;
+    roundRect(g, x, y, cw, chh, 3); g.fill();
+  });
+
+  // slogan
+  g.fillStyle = ink3;
+  g.font = '400 19px -apple-system,"PingFang SC",sans-serif';
+  g.fillText('337 / 365 ≈ 92%', 56, 1032);
+  g.fillStyle = ink2;
+  g.font = '400 17px -apple-system,"PingFang SC",sans-serif';
+  g.fillText('一年里九成的日子，就爱读', 56, 1062);
+
+  c.toBlob(blob=>{
+    if(!blob){ toast('生成失败'); return; }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = '92reader-' + today() + '.png';
+    document.body.appendChild(a); a.click();
+    setTimeout(()=>{ URL.revokeObjectURL(a.href); a.remove(); }, 800);
+    toast('分享图已保存');
+  }, 'image/png');
+}
+function roundRect(g, x, y, w, h, r){
+  g.beginPath();
+  g.moveTo(x+r, y);
+  g.arcTo(x+w, y, x+w, y+h, r);
+  g.arcTo(x+w, y+h, x, y+h, r);
+  g.arcTo(x, y+h, x, y, r);
+  g.arcTo(x, y, x+w, y, r);
+  g.closePath();
+}
+
+/* =========================================================
+   事件
+   ========================================================= */
+document.addEventListener('click', e=>{
+  const tabBtn = e.target.closest('[data-tab]');
+  if(tabBtn){ switchTab(tabBtn.dataset.tab); return; }
+
+  const impTab = e.target.closest('[data-imp]');
+  if(impTab){ renderImpBody(impTab.dataset.imp); return; }
+
+  const granBtn = e.target.closest('#pvGran [data-g]');
+  if(granBtn){ state.settings.gran = granBtn.dataset.g; renderPreview(); return; }
+  const setGranBtn = e.target.closest('[data-g]:not(#pvGran [data-g])');
+  if(setGranBtn && $('#setNew')){ state.settings.gran = setGranBtn.dataset.g; openSettings(); return; }
+  const densBtn = e.target.closest('[data-d]');
+  if(densBtn){ state.settings.density = densBtn.dataset.d; save(); openSettings(); return; }
+
+  const el = e.target.closest('[data-act]');
+  if(!el) return;
+  const act = el.dataset.act;
+  const id = el.dataset.id;
+
+  switch(act){
+    case 'settings': openSettings(); break;
+    case 'closeModal': closeModal(); break;
+    case 'import': openImport(); break;
+    case 'importSamples': importSamples(); break;
+    case 'read': openRead(id); break;
+    case 'readSpeak': { const seg = findSeg(ui.read.id); if(seg) speak(seg.text, seg.doc.lang); break; }
+    case 'readStop': try{ window.speechSynthesis.cancel(); }catch(err){} break;
+    case 'readDone': finishRead(); break;
+    case 'cloze': { const sg = findSeg(id); ui.forceSeg = sg; ui.tab='review'; ui.cloze=null; render(); break; }
+    case 'checkCloze': doCheckCloze(); break;
+    case 'clozeGiveUp': doGiveUp(); break;
+    case 'clozeSpeak': { const seg = ui.cloze && ui.cloze.seg; if(seg) speak(seg.text, seg.doc.lang); break; }
+    case 'nextCloze': ui.cloze = null; render(); break;
+    case 'roamNext': ui.roam = pickRoam(); render(); break;
+    case 'roamSpeak': if(ui.roam) speak(ui.roam.text, ui.roam.doc.lang); break;
+    case 'roamRate': {
+      if(!ui.roam) break;
+      const c = cardOf(ui.roam.id);
+      applyReview(c, parseInt(el.dataset.q,10));
+      save(); markCheckin();
+      ui.roam = pickRoam(); render();
+      toast('已记录，' + c.interval + ' 天后再见');
+      break;
+    }
+    case 'docView': openDoc(id); break;
+    case 'delDoc': {
+      const d = state.docs.find(x=>x.id===id);
+      if(!d) break;
+      d.segments.forEach((_,i)=> delete state.cards[d.id+'::'+i]);
+      state.docs = state.docs.filter(x=>x.id!==id);
+      save(); closeModal(); render(); toast('已删除');
+      break;
+    }
+    case 'fetchUrl': doFetch(); break;
+    case 'pastePreview': {
+      const t = $('#impText').value.trim();
+      if(!t){ toast('请粘贴内容'); break; }
+      const ex = looksLikeHtml(t) ? extractFromHtml(t) : null;
+      if(ex){
+        ui.preview = { title:$('#impTitle').value.trim() || ex.title || '未命名', text:ex.text,
+          lang:ex.lang, genre:$('#impGenre').value.trim(), source:'' };
+        renderPreview(); toast('已从网页源码提取正文');
+        break;
+      }
+      ui.preview = { title:$('#impTitle').value.trim() || '未命名', text:t,
+        lang:detectLang(t), genre:$('#impGenre').value.trim(), source:'' };
+      renderPreview();
+      break;
+    }
+    case 'confirmImport': {
+      const p = ui.preview; if(!p) break;
+      const doc = addDoc({ title:$('#pvTitle').value.trim()||p.title, text:p.text,
+        lang:$('#pvLang').value, genre:$('#pvGenre').value.trim(), source:p.source });
+      if(!doc){ toast('没有可导入的内容'); break; }
+      ui.preview = null; closeModal(); render();
+      toast('已导入「'+doc.title+'」，共 '+doc.segments.length+' 个单元');
+      break;
+    }
+    case 'export': exportData(); break;
+    case 'pickImportFile': {
+      const inp = document.createElement('input');
+      inp.type = 'file'; inp.accept = '.json,application/json';
+      inp.onchange = async ()=>{
+        const f = inp.files[0]; if(!f) return;
+        try{
+          if(importReadzy(JSON.parse(await readFile(f))) > 0){ closeModal(); render(); }
+        }catch(err){ toast('文件不是合法的 JSON'); }
+      };
+      inp.click();
+      break;
+    }
+    case 'share': shareCard(); break;
+    case 'saveSettings': saveSettings(); break;
+    case 'wipe': {
+      if(!confirm('确定清空全部数据？此操作不可撤销，建议先导出备份。')) break;
+      state = blank();
+      state.settings.seeded = true;   // 主动清空后不再自动补样例
+      save(); closeModal();
+      document.documentElement.setAttribute('data-theme','light');
+      render(); toast('已清空');
+      break;
+    }
+  }
+});
+
+$('#modal').addEventListener('click', e=>{ if(e.target.id === 'modal') closeModal(); });
+
+function fetchWithTimeout(url, ms){
+  const ctrl = new AbortController();
+  const timer = setTimeout(()=> ctrl.abort(), ms);
+  return fetch(url, { signal: ctrl.signal }).finally(()=> clearTimeout(timer));
+}
+
+/* 抓取三级：公共代理（纯前端主路径） → 自建服务端（整站部署时） → 提示降级 */
+async function doFetch(){
+  const url = ($('#impUrl').value || '').trim();
+  if(!url){ toast('请填写链接'); return; }
+  let pu;
+  try{ pu = new URL(url); }catch(e){ toast('链接格式不正确'); return; }
+  if(!/^https?:$/.test(pu.protocol)){ toast('仅支持 http / https 链接'); return; }
+
+  const btn = $('[data-act="fetchUrl"]');
+  if(btn){ btn.disabled = true; btn.textContent = '抓取中…'; }
+  let got = null;
+  try{
+    const proxy = (state.settings.proxy || '').trim();
+    if(proxy){
+      try{
+        const r = await fetchWithTimeout(proxy.replace(/\/$/,'') + '/' + url, 30000);
+        if(r.ok){
+          const c = cleanProxyText(await r.text());
+          if(c.text.replace(/\s/g,'').length >= 20) got = { title:c.title || pu.hostname, text:c.text };
+        }
+      }catch(e){}
+    }
+    if(!got){
+      try{
+        const r = await fetchWithTimeout('/api/fetch?url=' + encodeURIComponent(url), 20000);
+        const j = await r.json();
+        if(j && j.ok) got = { title:j.title || url, text:j.text };
+      }catch(e){}
+    }
+    if(!got){
+      toast('链接抓取失败：把网页另存为 .html 走「文件」导入，或复制源码粘到「粘贴」页');
+      return;
+    }
+    const parsed = tryReadzy(got.text);
+    if(parsed){
+      const n = importReadzy(parsed);
+      if(n > 0){ closeModal(); render(); }
+      return;
+    }
+    ui.preview = { title:got.title || url, text:got.text, lang:detectLang(got.text),
+                   genre:'', source:url };
+    renderPreview();
+  }catch(err){
+    toast('抓取出错，可改用网页源码 / 文件 / 样例库导入');
+  }finally{
+    if(btn){ btn.disabled = false; btn.textContent = '抓取'; }
+  }
+}
+
+/* =========================================================
+   启动
+   ========================================================= */
+document.documentElement.setAttribute('data-theme', state.settings.theme || 'light');
+storeOK = probeStore();
+const seeded = autoSeed();
+render();
+if(!storeOK) toast('当前环境无法本地保存，刷新后数据会丢失');
+else if(seeded) toast('已载入 '+seeded+' 篇公有领域样例，可直接开始');
+</script>
+</body>
+</html>

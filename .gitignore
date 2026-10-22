@@ -1,0 +1,8 @@
+# WorkBuddy 会话记忆与项目数据，不进仓库
+.workbuddy/
+
+# 投稿草稿：含 UserID 与手机号，只留在本机
+SUBMISSION-1024.md
+
+# 系统垃圾
+.DS_Store

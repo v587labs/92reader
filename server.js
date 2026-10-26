@@ -10,6 +10,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const dns = require('dns').promises;
 
 const PORT = Number(process.env.PORT || 3000);
 const ROOT = __dirname;
@@ -147,7 +148,49 @@ function extract(html, fallbackUrl) {
 
 /* ---------------- 抓取 ---------------- */
 
-async function grab(target) {
+/* SSRF 防护：/api/fetch 一旦随整站部署到公网，任何人都能让这台机器去发请求。
+   内网、回环、云元数据地址必须挡住。只比对字面量不够——域名可以解析到内网，
+   所以每跳都要先解析再判。自托管且确实要抓内网时，设 ALLOW_PRIVATE=1 放开。 */
+const ALLOW_PRIVATE = process.env.ALLOW_PRIVATE === '1';
+
+function isPrivateIp(ip) {
+  const v = String(ip || '').trim().toLowerCase();
+  if (!v) return true;
+  if (v === '::' || v === '::1' || v === '0.0.0.0') return true;
+  if (v.startsWith('::ffff:')) return isPrivateIp(v.slice(7)); // IPv4-mapped
+  if (/^127\./.test(v)) return true; // 回环
+  if (/^10\./.test(v)) return true; // 私有 A 类
+  if (/^192\.168\./.test(v)) return true; // 私有 C 类
+  if (/^172\.(1[6-9]|2\d|3[01])\./.test(v)) return true; // 私有 B 类
+  if (/^169\.254\./.test(v)) return true; // link-local，云厂商元数据服务在这
+  if (/^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./.test(v)) return true; // CGNAT
+  if (/^(192\.0\.0\.|192\.0\.2\.|198\.51\.100\.|203\.0\.113\.)/.test(v)) return true; // 保留段
+  if (/^(fc|fd)/.test(v) || /^fe80:/.test(v)) return true; // IPv6 ULA / link-local
+  return false;
+}
+
+async function hostBlocked(host) {
+  const h = String(host || '').trim().replace(/^\[|\]$/g, '').toLowerCase();
+  if (!h) return true;
+  if (h === 'localhost' || h.endsWith('.localhost') || h.endsWith('.internal') || h.endsWith('.local')) return true;
+  if (isPrivateIp(h)) return true;
+  if (/^\d+(\.\d+){3}$/.test(h)) return false; // 已是 IPv4，上面判过了
+  let addrs;
+  try {
+    addrs = await dns.lookup(h, { all: true });
+  } catch (e) {
+    return true; // 解析不了就不放
+  }
+  return addrs.some((a) => isPrivateIp(a.address));
+}
+
+async function urlAllowed(u) {
+  if (ALLOW_PRIVATE) return true;
+  return !(await hostBlocked(u.hostname));
+}
+
+async function grab(target, hops) {
+  hops = hops || 0;
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 20000);
   try {
@@ -158,9 +201,26 @@ async function grab(target) {
           'text/html,application/xhtml+xml,application/xml;q=0.9,text/plain;q=0.8,*/*;q=0.5',
         'Accept-Language': 'zh-CN,zh;q=0.9,en;q=0.8',
       },
-      redirect: 'follow',
+      redirect: 'manual', // 自己跟，逐跳校验，否则 302 一下就绕过了
       signal: ctrl.signal,
     });
+
+    if ([301, 302, 303, 307, 308].includes(res.status)) {
+      if (res.body && res.body.cancel) { try { res.body.cancel(); } catch (e) {} }
+      const loc = res.headers.get('location');
+      if (!loc) return { ok: false, error: '重定向缺少 Location 头' };
+      let next;
+      try {
+        next = new URL(loc, target);
+      } catch (e) {
+        return { ok: false, error: '重定向地址非法' };
+      }
+      if (!/^https?:$/.test(next.protocol)) return { ok: false, error: '重定向到非 http(s) 协议' };
+      if (hops >= 5) return { ok: false, error: '重定向次数过多（>5）' };
+      if (!(await urlAllowed(next))) return { ok: false, error: '重定向目标为内网地址，已拒绝' };
+      return grab(next.href, hops + 1);
+    }
+
     if (!res.ok) return { ok: false, error: '目标站点返回 ' + res.status };
 
     const buf = Buffer.from(await res.arrayBuffer());
@@ -238,6 +298,9 @@ const server = http.createServer(async (req, res) => {
     }
     if (!/^https?:$/.test(parsed.protocol)) {
       return sendJSON(res, 400, { ok: false, error: '仅支持 http / https 链接' });
+    }
+    if (!(await urlAllowed(parsed))) {
+      return sendJSON(res, 400, { ok: false, error: '不允许抓取内网 / 回环地址' });
     }
 
     let g;
